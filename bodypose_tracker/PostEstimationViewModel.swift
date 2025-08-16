@@ -83,7 +83,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
             for (jointName, joint) in jointsInGroup {
                 if joint.confidence > 0.5 { // ensure high confidence joints are added only
                     let point = joint.location.verticallyFlipped().cgPoint // flips y axis since coordinate system is upside down and convert it into ui coordinates
-                    detectedPoints[jointName] = point // store detectedPoints into the distionary
+                    detectedPoints[jointName] = point // store detectedPoints into the dictionary
                 }
             }
         }

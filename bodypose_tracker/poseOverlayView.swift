@@ -13,7 +13,6 @@ struct PoseOverlayView: View{
     
     var body: some View{
         GeometryReader{geometry in
-            
             ZStack{
                 ForEach(connections){connection in
                     if let fromPoint = bodyParts[connection.from],
@@ -33,31 +32,29 @@ struct PoseOverlayView: View{
                         }
                         .stroke(Color.green, lineWidth: 3)
                     }
-                        
+                    
                 }
                 ForEach(Array(bodyParts.keys),id:\.self){jointName in
                     if let point = bodyParts[jointName]{
                         let pointInView = CGPoint(
                             x: point.x * geometry.size.width,
                             y: point.y * geometry.size.height
-                            )
-                                                
-                    Circle()
-                    .fill(.white)
-                    .frame(width: 10, height: 10)
-                    .position(pointInView)
-                    .overlay(
-                    ZStack{
-                    Circle()
-                    .stroke(Color.white, lineWidth: 1)
-                    .frame(width: 12, height: 12)
-                                                            
-                                                                
-                    }
-                    )
-                    }
+                        )
                         
-                    
+                        Circle()
+                            .fill(.white)
+                            .frame(width: 10, height: 10)
+                            .position(pointInView)
+                            .overlay(
+                                ZStack{
+                                    Circle()
+                                        .stroke(Color.white, lineWidth: 1)
+                                        .frame(width: 12, height: 12)
+                                    
+                                    
+                                }
+                            )
+                    }
                 }
             }
             

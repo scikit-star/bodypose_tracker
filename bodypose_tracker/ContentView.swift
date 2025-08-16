@@ -6,16 +6,22 @@
 //
 
 import SwiftUI
+import AVFoundation
+import Vision
 
 struct ContentView: View {
+    @State private var cameraViewModel = CameraViewModel()
+    @State private var poseViewModel = PoseEstimationViewModel()
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("BODY POSE TRACKER ")
+        ZStack {
+            CameraPreviewView(session: cameraViewModel.session)
+                .edgesIgnoringSafeArea(.all)
+            PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
         }
-        .padding()
+        .task {
+            await cameraViewModel.checkpermission()
+            cameraViewModel.delegate = poseViewModel
+        }
     }
 }
 
