@@ -49,10 +49,15 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         Task {
+            guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+            
+            let frameWidth = CGFloat(CVPixelBufferGetWidth(imageBuffer))
+            let frameHeight = CGFloat(CVPixelBufferGetHeight(imageBuffer))
+            
             if let detectedPoints = await processFrame(sampleBuffer) {
                 DispatchQueue.main.async {
                     self.detectedBodyParts = detectedPoints
-                    if self.detectClap(from: detectedPoints) {
+                    if self.detectClap(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
                         self.clapMessage = "Clap Detected!"
                     }
                 }
@@ -93,16 +98,16 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         }
         return detectedPoints
     }
-    private func detectClap(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool {
+    private func detectClap(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint], frameWidth: CGFloat, frameHeight: CGFloat) -> Bool {
         guard let leftWrist = detectedPoints[.leftWrist],
               let rightWrist = detectedPoints[.rightWrist] else {
             return false
         }
-        let dx = leftWrist.x - rightWrist.x
-        let dy = leftWrist.y - rightWrist.y
+        let dx = (leftWrist.x - rightWrist.x) * frameWidth
+        let dy = (leftWrist.y - rightWrist.y) * frameHeight
         let distance = sqrt(dx*dx + dy*dy)
         print(distance)
         
-        return distance < 30
+        return distance < 100
     }
 }
