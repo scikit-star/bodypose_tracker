@@ -12,11 +12,16 @@ import Vision
 struct ContentView: View {
     @State private var cameraViewModel = CameraViewModel()
     @State private var poseViewModel = PoseEstimationViewModel()
+    @State private var clapMessage = PoseEstimationViewModel().clapMessage
     var body: some View {
-        ZStack {
-            CameraPreviewView(session: cameraViewModel.session)
-                .edgesIgnoringSafeArea(.all)
-            PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
+        VStack {
+            ZStack {
+                CameraPreviewView(session: cameraViewModel.session)
+                    .edgesIgnoringSafeArea(.all)
+                PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
+            }
+            Text(clapMessage)
+                .font(.title)
         }
         .task {
             await cameraViewModel.checkpermission()

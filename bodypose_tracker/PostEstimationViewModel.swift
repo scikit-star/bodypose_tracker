@@ -21,6 +21,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     
     var detectedBodyParts: [HumanBodyPoseObservation.JointName: CGPoint] = [:] // Dictionary that represents specific body joints
     var bodyConnections: [BodyConnection] = []
+    var clapMessage: String = "CLAP!"
     
     override init() {
         super.init() // runs base class initializer
@@ -51,6 +52,9 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
             if let detectedPoints = await processFrame(sampleBuffer) {
                 DispatchQueue.main.async {
                     self.detectedBodyParts = detectedPoints
+                    if self.detectClap(from: detectedPoints) {
+                        self.clapMessage = "Clap Detected!"
+                    }
                 }
             }
         }
@@ -88,5 +92,17 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
             }
         }
         return detectedPoints
+    }
+    private func detectClap(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool {
+        guard let leftWrist = detectedPoints[.leftWrist],
+              let rightWrist = detectedPoints[.rightWrist] else {
+            return false
+        }
+        let dx = leftWrist.x - rightWrist.x
+        let dy = leftWrist.y - rightWrist.y
+        let distance = sqrt(dx*dx + dy*dy)
+        print(distance)
+        
+        return distance < 30
     }
 }
