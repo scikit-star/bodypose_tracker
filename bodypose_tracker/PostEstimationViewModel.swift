@@ -76,7 +76,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     
     private func extractPoints(from observation: HumanBodyPoseObservation) -> [HumanBodyPoseObservation.JointName: CGPoint] {
         var detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint] = [:]
-        var humanJoints: [HumanBodyPoseObservation.PoseJointsGroupName] = [.face, .torso, .leftArm, .rightArm, .leftLeg, .rightLeg] // process all body regions inside the array for pose estimation
+        var humanJoints: [HumanBodyPoseObservation.PoseJointsGroupName] = [.face, .torso, .leftArm, .rightArm] // process all body regions inside the array for pose estimation
         
         for groupName in humanJoints {
             let jointsInGroup = observation.allJoints(in: groupName)
