@@ -12,7 +12,6 @@ import Vision
 struct ContentView: View {
     @State private var cameraViewModel = CameraViewModel()
     @State private var poseViewModel = PoseEstimationViewModel()
-    @State private var clapMessage = PoseEstimationViewModel().clapMessage
     var body: some View {
         VStack {
             ZStack {
@@ -20,7 +19,7 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.all)
                 PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
             }
-            Text(clapMessage)
+            Text(poseViewModel.clapMessage)
                 .font(.title)
         }
         .task {

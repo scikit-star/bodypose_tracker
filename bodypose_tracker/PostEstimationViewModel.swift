@@ -108,6 +108,6 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         let distance = sqrt(dx*dx + dy*dy)
         print(distance)
         
-        return distance < 100
+        return distance < 190
     }
 }
