@@ -21,7 +21,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     
     var detectedBodyParts: [HumanBodyPoseObservation.JointName: CGPoint] = [:] // Dictionary that represents specific body joints
     var bodyConnections: [BodyConnection] = []
-    var clapMessage: String = "CLAP!"
+    var detectedMessage: String = "POSE!"
     
     override init() {
         super.init() // runs base class initializer
@@ -57,9 +57,11 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
             if let detectedPoints = await processFrame(sampleBuffer) {
                 DispatchQueue.main.async {
                     self.detectedBodyParts = detectedPoints
-                    if self.detectClap(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
-                        self.clapMessage = "Clap Detected!"
-                    }
+                    if self.detectSwimming(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
+                        self.detectedMessage = "Swimming Detected!"
+                    }else if self.detectClap(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
+                        self.detectedMessage = "Clap Detected!"
+                    }else { self.detectedMessage = "POSE!" }
                 }
             }
         }
@@ -106,8 +108,48 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         let dx = (leftWrist.x - rightWrist.x) * frameWidth
         let dy = (leftWrist.y - rightWrist.y) * frameHeight
         let distance = sqrt(dx*dx + dy*dy)
-        print(distance)
+//        print(distance)
         
         return distance < 190
+    }
+    private func detectSwimming(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint], frameWidth: CGFloat, frameHeight: CGFloat) -> Bool {
+        guard let rightShoulder = detectedPoints[.rightShoulder],
+              let leftShoulder = detectedPoints[.leftShoulder],
+              let rightElbow = detectedPoints[.rightElbow],
+              let leftElbow = detectedPoints[.leftElbow],
+              let rightWrist = detectedPoints[.rightWrist],
+              let leftWrist = detectedPoints[.leftWrist] else {
+                  return false
+              }
+        func angleBetweenJoints(shoulder: CGPoint, elbow: CGPoint, wrist: CGPoint) -> CGFloat {
+            let shoulderToElbowDX = shoulder.x - elbow.x //finds vector
+            let shoulderToElbowDY = shoulder.y - elbow.y
+            let wristToElbowDX = wrist.x - elbow.x
+            let wristToElbowDY = wrist.y - elbow.y
+            
+            let dot = (shoulderToElbowDX * wristToElbowDX) + (shoulderToElbowDY * wristToElbowDY) //finds how aligned the two vectors are
+            let shoulderToElbowMag = sqrt((shoulderToElbowDX * shoulderToElbowDX) + (shoulderToElbowDY * shoulderToElbowDY))
+            let wristToElbowMag = sqrt((wristToElbowDX * wristToElbowDX) + (wristToElbowDY * wristToElbowDY))
+            guard shoulderToElbowMag > 0 && wristToElbowMag > 0 else { return 0 }
+            
+            let cosTheta = dot / (shoulderToElbowMag * wristToElbowMag)
+            let clampedCos = max(-1, min(1, cosTheta))
+            let angle = acos(clampedCos) * 180 / .pi
+            
+            return angle
+        }
+        
+//        let dxForWrist = (rightWrist.x - leftWrist.x) * frameWidth
+//        let dyForWrist = (rightWrist.y - leftWrist.y) * frameHeight
+//        let distance = sqrt((dxForWrist * dxForWrist) + (dyForWrist * dyForWrist))
+        
+        let rightArmAngle = angleBetweenJoints(shoulder: rightShoulder, elbow: rightElbow, wrist: rightWrist)
+        let leftArmAngle = angleBetweenJoints(shoulder: leftShoulder, elbow: leftElbow, wrist: leftWrist)
+        
+        let checkArmStraight = abs(rightArmAngle - 180) < 30 && abs(leftArmAngle - 180) < 30
+//        let checkWrist = distance < 190
+//        print("rightArmAngle: \(abs(rightArmAngle - 180)), leftArmAngle: \(abs(leftArmAngle - 180))")
+//        let handsLevel = abs((rightWrist.y * frameHeight) - (rightShoulder.y * frameHeight)) < 20 && abs((leftWrist.y * frameHeight) - (leftShoulder.y * frameHeight)) < 20
+        return checkArmStraight
     }
 }
