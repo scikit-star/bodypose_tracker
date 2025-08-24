@@ -19,7 +19,7 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.all)
                 PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
             }
-            Text(poseViewModel.clapMessage)
+            Text(poseViewModel.detectedMessage)
                 .font(.title)
         }
         .task {
