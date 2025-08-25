@@ -59,6 +59,8 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
                     self.detectedBodyParts = detectedPoints
                     if self.detectSwimming(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
                         self.detectedMessage = "Swimming Detected!"
+                    }else if self.detectHandsOnHead(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
+                        self.detectedMessage = "Hands on Head Detected!"
                     }else if self.detectClap(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
                         self.detectedMessage = "Clap Detected!"
                     }else { self.detectedMessage = "POSE!" }
@@ -108,7 +110,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         let dx = (leftWrist.x - rightWrist.x) * frameWidth
         let dy = (leftWrist.y - rightWrist.y) * frameHeight
         let distance = sqrt(dx*dx + dy*dy)
-//        print(distance)
+        //        print(distance)
         
         return distance < 190
     }
@@ -119,8 +121,8 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
               let leftElbow = detectedPoints[.leftElbow],
               let rightWrist = detectedPoints[.rightWrist],
               let leftWrist = detectedPoints[.leftWrist] else {
-                  return false
-              }
+            return false
+        }
         func angleBetweenJoints(shoulder: CGPoint, elbow: CGPoint, wrist: CGPoint) -> CGFloat {
             let shoulderToElbowDX = shoulder.x - elbow.x //finds vector
             let shoulderToElbowDY = shoulder.y - elbow.y
@@ -139,17 +141,39 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
             return angle
         }
         
-//        let dxForWrist = (rightWrist.x - leftWrist.x) * frameWidth
-//        let dyForWrist = (rightWrist.y - leftWrist.y) * frameHeight
-//        let distance = sqrt((dxForWrist * dxForWrist) + (dyForWrist * dyForWrist))
+        //        let dxForWrist = (rightWrist.x - leftWrist.x) * frameWidth
+        //        let dyForWrist = (rightWrist.y - leftWrist.y) * frameHeight
+        //        let distance = sqrt((dxForWrist * dxForWrist) + (dyForWrist * dyForWrist))
         
         let rightArmAngle = angleBetweenJoints(shoulder: rightShoulder, elbow: rightElbow, wrist: rightWrist)
         let leftArmAngle = angleBetweenJoints(shoulder: leftShoulder, elbow: leftElbow, wrist: leftWrist)
         
         let checkArmStraight = abs(rightArmAngle - 180) < 30 && abs(leftArmAngle - 180) < 30
-//        let checkWrist = distance < 190
-//        print("rightArmAngle: \(abs(rightArmAngle - 180)), leftArmAngle: \(abs(leftArmAngle - 180))")
-//        let handsLevel = abs((rightWrist.y * frameHeight) - (rightShoulder.y * frameHeight)) < 20 && abs((leftWrist.y * frameHeight) - (leftShoulder.y * frameHeight)) < 20
+        //        let checkWrist = distance < 190
+        //        print("rightArmAngle: \(abs(rightArmAngle - 180)), leftArmAngle: \(abs(leftArmAngle - 180))")
+        //        let handsLevel = abs((rightWrist.y * frameHeight) - (rightShoulder.y * frameHeight)) < 20 && abs((leftWrist.y * frameHeight) - (leftShoulder.y * frameHeight)) < 20
         return checkArmStraight
+    }
+    private func detectHandsOnHead(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint], frameWidth: CGFloat, frameHeight: CGFloat) -> Bool {
+        guard let rightWrist = detectedPoints[.rightWrist],
+              let leftWrist = detectedPoints[.leftWrist],
+              let nose = detectedPoints[.nose] else {
+            return false
+        }
+        let checkWristAboveNose = rightWrist.y < nose.y && leftWrist.y < nose.y
+        let headRadius = 0.15
+        
+        let rightSideDx = rightWrist.x - nose.x
+        let rightSideDy = rightWrist.y - nose.y
+        let rightSideDistance = sqrt((rightSideDx * rightSideDx) + (rightSideDy * rightSideDy))
+        
+        let leftSideDx = leftWrist.x - nose.x
+        let leftSideDy = leftWrist.y - nose.y
+        let leftSideDistance = sqrt((leftSideDx * leftSideDx) + (leftSideDy * leftSideDy))
+//        print("RightSideDistance: \(rightSideDistance), LeftSideDistance: \(leftSideDistance), headRadius: \(headRadius)")
+        
+        let handsNearHead = rightSideDistance < headRadius && leftSideDistance < headRadius
+        
+        return checkWristAboveNose && handsNearHead
     }
 }
