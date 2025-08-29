@@ -170,17 +170,113 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         let leftSideDx = leftWrist.x - nose.x
         let leftSideDy = leftWrist.y - nose.y
         let leftSideDistance = sqrt((leftSideDx * leftSideDx) + (leftSideDy * leftSideDy))
-//        print("RightSideDistance: \(rightSideDistance), LeftSideDistance: \(leftSideDistance), headRadius: \(headRadius)")
+        //        print("RightSideDistance: \(rightSideDistance), LeftSideDistance: \(leftSideDistance), headRadius: \(headRadius)")
         
         let handsNearHead = rightSideDistance < headRadius && leftSideDistance < headRadius
         
         return checkWristAboveNose && handsNearHead
     }
-    private func isRightHandRaised(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool{
+    //    private func isRightHandRaised(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool{
+    //        guard let rightWrist = detectedPoints[.rightWrist],
+    //              let rightShoulder = detectedPoints[.rightShoulder] else{
+    //            return false
+    //        }
+    //        return rightWrist.y < rightShoulder.y
+    //    }
+    
+    //vars for tracking cutting motion
+    var wristYHistory: [CGFloat] = []
+    let historyLimit = 15   // number of frames to keep
+    let chopThreshold: CGFloat = -0.15  // how fast downward is considered a chop
+    let resetThreshold: CGFloat = 0.05  // upward move to reset
+    var chopInProgress = false
+    
+    
+    private func detectCutting(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool {
         guard let rightWrist = detectedPoints[.rightWrist],
-              let rightShoulder = detectedPoints[.rightShoulder] else{
+              let rightShoulder = detectedPoints[.nose],
+              let rightElbow = detectedPoints[.rightElbow]else {
             return false
         }
-        return rightWrist.y < rightShoulder.y
+        wristYHistory.append(rightWrist.y)
+        if wristYHistory.count > historyLimit{
+            wristYHistory.removeFirst()
+        }
+        guard wristYHistory.count >= 2 else {return false}
+        let dy = wristYHistory.last! - wristYHistory.first!
+        if !chopInProgress,dy < chopThreshold, rightWrist.y < rightElbow.y {
+            chopInProgress = true
+            return true
+        } else if chopInProgress,
+                  dy > resetThreshold {
+            chopInProgress = false
+        }
+        
+        return false
+        
     }
+    var rightWristHistory: [CGFloat] = []
+    var leftWristHistory: [CGFloat] = []
+    let flyhistoryLimit = 20
+    
+    enum FlapDirection {
+        case up, down, none
+    }
+    
+    var lastRightFlap: FlapDirection = .none
+    var lastLeftFlap: FlapDirection = .none
+    
+    private func detectFlap(from detectedPoints: [VNHumanBodyPoseObservation.JointName: CGPoint])->Bool {
+        guard let rightWrist = detectedPoints[.rightWrist],
+              let rightShoulder = detectedPoints[.rightShoulder],
+              let leftWrist = detectedPoints[.leftWrist],
+              let leftShoulder = detectedPoints[.leftShoulder] else {
+            return false
+        }
+        
+        // wrist vs shoulder
+        let rightRelativeY = rightWrist.y - rightShoulder.y
+        let leftRelativeY  = leftWrist.y - leftShoulder.y
+        
+        rightWristHistory.append(rightRelativeY)
+        leftWristHistory.append(leftRelativeY)
+        
+        if rightWristHistory.count > historyLimit { rightWristHistory.removeFirst() }
+        if leftWristHistory.count > historyLimit { leftWristHistory.removeFirst() }
+        
+        // detect up vs down
+        let rightFlap = detectSingleFlap(relativeY: rightRelativeY, lastDirection: &lastRightFlap, side: "right")//check
+        let leftFlap = detectSingleFlap(relativeY: leftRelativeY, lastDirection: &lastLeftFlap, side: "left")//check
+        return rightFlap || leftFlap
+    }
+    
+    private func detectSingleFlap(relativeY: CGFloat, lastDirection: inout FlapDirection, side: String)-> Bool {
+        let upThreshold: CGFloat = 0.1   // wrist > shoulder
+        let downThreshold: CGFloat = -0.1 // wrist < shoulder
+        
+        if relativeY > upThreshold, lastDirection != .up {
+            print("\(side) arm flapped up")
+            lastDirection = .up
+            return true
+        } else if relativeY < downThreshold, lastDirection != .down {
+            print("\(side) arm flapped down")
+            lastDirection = .down
+            return true
+        }
+        return false
+    }
+    private func climbing(from detectedPoints: [VNHumanBodyPoseObservation.JointName: CGPoint])-> Bool{
+        guard let rightWrist = detectedPoints[.rightWrist],
+              let leftWrist = detectedPoints[.leftWrist],
+              let nose = detectedPoints[.nose]else{
+                  return false
+              }
+        if rightWrist.y > nose.y, rightWrist.y > leftWrist.y{
+            return true
+        }else if rightWrist.y > nose.y, leftWrist.y > rightWrist.y {
+            return true
+        }
+        return false
+    }
+
 }
