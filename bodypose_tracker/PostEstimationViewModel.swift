@@ -176,4 +176,11 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         
         return checkWristAboveNose && handsNearHead
     }
+    private func isRightHandRaised(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool{
+        guard let rightWrist = detectedPoints[.rightWrist],
+              let rightShoulder = detectedPoints[.rightShoulder] else{
+            return false
+        }
+        return rightWrist.y < rightShoulder.y
+    }
 }
