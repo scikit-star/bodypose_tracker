@@ -61,6 +61,12 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
                         self.detectedMessage = "Swimming Detected!"
                     }else if self.detectHandsOnHead(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
                         self.detectedMessage = "Hands on Head Detected!"
+                    }else if self.detectCutting(from: detectedPoints){
+                        self.detectedMessage = "Cutting detected!"
+                    }else if self.climbing(from: detectedPoints) {
+                        self.detectedMessage = "Climbing detected!"
+                    }else if self.detectFlap(from: detectedPoints) {
+                        self.detectedMessage = "Flying Detected!"
                     }else if self.detectClap(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
                         self.detectedMessage = "Clap Detected!"
                     }else { self.detectedMessage = "POSE!" }
@@ -226,7 +232,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     var lastRightFlap: FlapDirection = .none
     var lastLeftFlap: FlapDirection = .none
     
-    private func detectFlap(from detectedPoints: [VNHumanBodyPoseObservation.JointName: CGPoint])->Bool {
+    private func detectFlap(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint])->Bool {
         guard let rightWrist = detectedPoints[.rightWrist],
               let rightShoulder = detectedPoints[.rightShoulder],
               let leftWrist = detectedPoints[.leftWrist],
@@ -265,12 +271,12 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         }
         return false
     }
-    private func climbing(from detectedPoints: [VNHumanBodyPoseObservation.JointName: CGPoint])-> Bool{
+    private func climbing(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint])-> Bool{
         guard let rightWrist = detectedPoints[.rightWrist],
               let leftWrist = detectedPoints[.leftWrist],
               let nose = detectedPoints[.nose]else{
-                  return false
-              }
+            return false
+        }
         if rightWrist.y > nose.y, rightWrist.y > leftWrist.y{
             return true
         }else if rightWrist.y > nose.y, leftWrist.y > rightWrist.y {
@@ -278,5 +284,5 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         }
         return false
     }
-
+    
 }
