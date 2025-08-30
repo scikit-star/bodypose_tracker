@@ -163,24 +163,20 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     private func detectHandsOnHead(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint], frameWidth: CGFloat, frameHeight: CGFloat) -> Bool {
         guard let rightWrist = detectedPoints[.rightWrist],
               let leftWrist = detectedPoints[.leftWrist],
-              let nose = detectedPoints[.nose] else {
+              let rightEye = detectedPoints[.rightEye],
+              let leftEye = detectedPoints[.leftEye] else {
             return false
         }
-        let checkWristAboveNose = rightWrist.y < nose.y && leftWrist.y < nose.y
-        let headRadius = 0.15
         
-        let rightSideDx = rightWrist.x - nose.x
-        let rightSideDy = rightWrist.y - nose.y
-        let rightSideDistance = sqrt((rightSideDx * rightSideDx) + (rightSideDy * rightSideDy))
+        let rightWristCloseToRightEye = abs(rightWrist.y - rightEye.y) * frameHeight < 100
+        let leftWristCloseToLeftEye = abs(leftWrist.y - leftEye.y) * frameHeight < 100
         
-        let leftSideDx = leftWrist.x - nose.x
-        let leftSideDy = leftWrist.y - nose.y
-        let leftSideDistance = sqrt((leftSideDx * leftSideDx) + (leftSideDy * leftSideDy))
-        //        print("RightSideDistance: \(rightSideDistance), LeftSideDistance: \(leftSideDistance), headRadius: \(headRadius)")
         
-        let handsNearHead = rightSideDistance < headRadius && leftSideDistance < headRadius
+        let dx = (leftWrist.x - rightWrist.x) * frameWidth
+        let dy = (leftWrist.y - rightWrist.y) * frameHeight
+        let distance = sqrt(dx*dx + dy*dy)
         
-        return checkWristAboveNose && handsNearHead
+        return leftWristCloseToLeftEye && leftWristCloseToLeftEye && distance > 210 && distance < 350
     }
     //    private func isRightHandRaised(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool{
     //        guard let rightWrist = detectedPoints[.rightWrist],
