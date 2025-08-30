@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct bodypose_trackerApp: App {
+    @State private var poseDetector = PoseEstimationViewModel()
     var body: some Scene {
         WindowGroup {
             ContentView()

@@ -21,7 +21,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     
     var detectedBodyParts: [HumanBodyPoseObservation.JointName: CGPoint] = [:] // Dictionary that represents specific body joints
     var bodyConnections: [BodyConnection] = []
-    var detectedMessage: String = "POSE!"
+    var detectedPose: String = ""
     
     override init() {
         super.init() // runs base class initializer
@@ -58,18 +58,20 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
                 DispatchQueue.main.async {
                     self.detectedBodyParts = detectedPoints
                     if self.detectSwimming(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
-                        self.detectedMessage = "Swimming Detected!"
+                        self.detectedPose = "Swimming"
                     }else if self.detectHandsOnHead(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
-                        self.detectedMessage = "Hands on Head Detected!"
+                        self.detectedPose = "Hands on Head Detected!"
                     }else if self.cutting(from: detectedPoints){
-                        self.detectedMessage = "Cutting detected!"
+                        self.detectedPose = "Cutting detected!"
                     }else if self.climbing(from: detectedPoints) {
-                        self.detectedMessage = "Climbing detected!"
+                        self.detectedPose = "Climbing detected!"
                     }else if self.flying(from: detectedPoints) {
-                        self.detectedMessage = "Flying Detected!"
+                        self.detectedPose = "HandsOnHead"
+                    }else if self.climbing(from: detectedPoints) {
+                        self.detectedPose = "Climbing"
                     }else if self.detectClap(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
-                        self.detectedMessage = "Clap Detected!"
-                    }else { self.detectedMessage = "POSE!" }
+                        self.detectedPose = "Clap"
+                    }
                 }
             }
         }
@@ -126,7 +128,8 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
               let rightElbow = detectedPoints[.rightElbow],
               let leftElbow = detectedPoints[.leftElbow],
               let rightWrist = detectedPoints[.rightWrist],
-              let leftWrist = detectedPoints[.leftWrist] else {
+              let leftWrist = detectedPoints[.leftWrist],
+              let nose = detectedPoints[.nose] else {
             return false
         }
         func angleBetweenJoints(shoulder: CGPoint, elbow: CGPoint, wrist: CGPoint) -> CGFloat {
@@ -154,11 +157,11 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         let rightArmAngle = angleBetweenJoints(shoulder: rightShoulder, elbow: rightElbow, wrist: rightWrist)
         let leftArmAngle = angleBetweenJoints(shoulder: leftShoulder, elbow: leftElbow, wrist: leftWrist)
         
-        let checkArmStraight = abs(rightArmAngle - 180) < 30 && abs(leftArmAngle - 180) < 30
+        let checkArmStraight = abs(rightArmAngle - 180) < 45 && abs(leftArmAngle - 180) < 45
         //        let checkWrist = distance < 190
         //        print("rightArmAngle: \(abs(rightArmAngle - 180)), leftArmAngle: \(abs(leftArmAngle - 180))")
         //        let handsLevel = abs((rightWrist.y * frameHeight) - (rightShoulder.y * frameHeight)) < 20 && abs((leftWrist.y * frameHeight) - (leftShoulder.y * frameHeight)) < 20
-        return checkArmStraight
+        return checkArmStraight && nose.y < rightWrist.y && nose.y < leftWrist.y
     }
     private func detectHandsOnHead(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint], frameWidth: CGFloat, frameHeight: CGFloat) -> Bool {
         guard let rightWrist = detectedPoints[.rightWrist],
