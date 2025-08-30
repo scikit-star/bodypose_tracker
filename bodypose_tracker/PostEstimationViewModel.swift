@@ -273,9 +273,9 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
               let nose = detectedPoints[.nose]else{
             return false
         }
-        if rightWrist.y > nose.y, rightWrist.y > leftWrist.y{
+        if rightWrist.y < nose.y, rightWrist.y < leftWrist.y{
             return true
-        }else if rightWrist.y > nose.y, leftWrist.y > rightWrist.y {
+        }else if rightWrist.y < nose.y, leftWrist.y < rightWrist.y {
             return true
         }
         return false
