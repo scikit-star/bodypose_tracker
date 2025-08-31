@@ -48,20 +48,16 @@ class GameScene: SKScene {
 struct ContentView: View {
     @State private var cameraViewModel = CameraViewModel()
     @State private var poseViewModel = PoseEstimationViewModel()
-    @Environment(PoseEstimationViewModel.self) private var detector
     @State private var scene = GameScene(size: UIScreen.main.bounds.size)
     var body: some View {
         VStack {
-            //            ZStack {
-            //                CameraPreviewView(session: cameraViewModel.session)
-            //                    .edgesIgnoringSafeArea(.all)
-            //                PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
-            //            }
-            //            Text(poseViewModel.detectedPose)
-            SpriteView(scene: scene)
-                .onChange(of: detector.detectedPose) { _, newPose in
-                    scene.currentPose = newPose
-                }
+            ZStack {
+                CameraPreviewView(session: cameraViewModel.session)
+                    .edgesIgnoringSafeArea(.all)
+                PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
+            }
+            Text(poseViewModel.detectedPose)
+                .font(.title)
         }
         .task {
             await cameraViewModel.checkpermission()
