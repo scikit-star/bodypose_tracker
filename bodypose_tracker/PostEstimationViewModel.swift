@@ -161,7 +161,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         //        let checkWrist = distance < 190
         //        print("rightArmAngle: \(abs(rightArmAngle - 180)), leftArmAngle: \(abs(leftArmAngle - 180))")
         //        let handsLevel = abs((rightWrist.y * frameHeight) - (rightShoulder.y * frameHeight)) < 20 && abs((leftWrist.y * frameHeight) - (leftShoulder.y * frameHeight)) < 20
-        return checkArmStraight && nose.y < rightWrist.y && nose.y < leftWrist.y
+        return checkArmStraight && nose.y > rightWrist.y && nose.y > leftWrist.y
     }
     private func detectHandsOnHead(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint], frameWidth: CGFloat, frameHeight: CGFloat) -> Bool {
         guard let rightWrist = detectedPoints[.rightWrist],
@@ -171,15 +171,15 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
             return false
         }
         
-        let rightWristCloseToRightEye = abs(rightWrist.y - rightEye.y) * frameHeight < 100
-        let leftWristCloseToLeftEye = abs(leftWrist.y - leftEye.y) * frameHeight < 100
+        let rightWristCloseToRightEye = abs(rightWrist.y - rightEye.y) * frameHeight < 180
+        let leftWristCloseToLeftEye = abs(leftWrist.y - leftEye.y) * frameHeight < 180
         
         
         let dx = (leftWrist.x - rightWrist.x) * frameWidth
         let dy = (leftWrist.y - rightWrist.y) * frameHeight
         let distance = sqrt(dx*dx + dy*dy)
         
-        return leftWristCloseToLeftEye && leftWristCloseToLeftEye && distance > 210 && distance < 350
+        return leftWristCloseToLeftEye && rightWristCloseToRightEye && distance > 210 && distance < 300
     }
     //    private func isRightHandRaised(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool{
     //        guard let rightWrist = detectedPoints[.rightWrist],
@@ -190,114 +190,114 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     //    }
     
     //vars for tracking cutting motion
-//    var wristYHistory: [CGFloat] = []
-//    let historyLimit = 15   // number of frames to keep
-//    let chopThreshold: CGFloat = -0.15  // how fast downward is considered a chop
-//    let resetThreshold: CGFloat = 0.05  // upward move to reset
-//    var chopInProgress = false
+    //    var wristYHistory: [CGFloat] = []
+    //    let historyLimit = 15   // number of frames to keep
+    //    let chopThreshold: CGFloat = -0.15  // how fast downward is considered a chop
+    //    let resetThreshold: CGFloat = 0.05  // upward move to reset
+    //    var chopInProgress = false
     
     
-//    private func detectCutting(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool {
-//        guard let rightWrist = detectedPoints[.rightWrist],
-//              let rightShoulder = detectedPoints[.nose],
-//              let rightElbow = detectedPoints[.rightElbow]else {
-//            return false
-//        }
-//        wristYHistory.append(rightWrist.y)
-//        if wristYHistory.count > historyLimit{
-//            wristYHistory.removeFirst()
-//        }
-//        guard wristYHistory.count >= 2 else {return false}
-//        let dy = wristYHistory.last! - wristYHistory.first!
-//        if !chopInProgress,dy < chopThreshold, rightWrist.y < rightElbow.y {
-//            chopInProgress = true
-//            return true
-//        } else if chopInProgress,
-//                  dy > resetThreshold {
-//            chopInProgress = false
-//        }
-//        
-//        return false
-//        
-//    }
-//    var rightWristHistory: [CGFloat] = []
-//    var leftWristHistory: [CGFloat] = []
-//    let flyhistoryLimit = 20
-//    
-//    enum FlapDirection {
-//        case up, down, none
-//    }
-//    
-//    var lastRightFlap: FlapDirection = .none
-//    var lastLeftFlap: FlapDirection = .none
+    //    private func detectCutting(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool {
+    //        guard let rightWrist = detectedPoints[.rightWrist],
+    //              let rightShoulder = detectedPoints[.nose],
+    //              let rightElbow = detectedPoints[.rightElbow]else {
+    //            return false
+    //        }
+    //        wristYHistory.append(rightWrist.y)
+    //        if wristYHistory.count > historyLimit{
+    //            wristYHistory.removeFirst()
+    //        }
+    //        guard wristYHistory.count >= 2 else {return false}
+    //        let dy = wristYHistory.last! - wristYHistory.first!
+    //        if !chopInProgress,dy < chopThreshold, rightWrist.y < rightElbow.y {
+    //            chopInProgress = true
+    //            return true
+    //        } else if chopInProgress,
+    //                  dy > resetThreshold {
+    //            chopInProgress = false
+    //        }
+    //
+    //        return false
+    //
+    //    }
+    //    var rightWristHistory: [CGFloat] = []
+    //    var leftWristHistory: [CGFloat] = []
+    //    let flyhistoryLimit = 20
+    //
+    //    enum FlapDirection {
+    //        case up, down, none
+    //    }
+    //
+    //    var lastRightFlap: FlapDirection = .none
+    //    var lastLeftFlap: FlapDirection = .none
     
-//    private func detectFlap(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint])->Bool {
-//        guard let rightWrist = detectedPoints[.rightWrist],
-//              let rightShoulder = detectedPoints[.rightShoulder],
-//              let leftWrist = detectedPoints[.leftWrist],
-//              let leftShoulder = detectedPoints[.leftShoulder] else {
-//            return false
-//        }
-//        
-//        // wrist vs shoulder
-//        let rightRelativeY = rightWrist.y - rightShoulder.y
-//        let leftRelativeY  = leftWrist.y - leftShoulder.y
-//        
-//        rightWristHistory.append(rightRelativeY)
-//        leftWristHistory.append(leftRelativeY)
-//        
-//        if rightWristHistory.count > historyLimit { rightWristHistory.removeFirst() }
-//        if leftWristHistory.count > historyLimit { leftWristHistory.removeFirst() }
-//        
-//        // detect up vs down
-//        let rightFlap = detectSingleFlap(relativeY: rightRelativeY, lastDirection: &lastRightFlap, side: "right")//check
-//        let leftFlap = detectSingleFlap(relativeY: leftRelativeY, lastDirection: &lastLeftFlap, side: "left")//check
-//        return rightFlap || leftFlap
-//    }
-//    
-//    private func detectSingleFlap(relativeY: CGFloat, lastDirection: inout FlapDirection, side: String)-> Bool {
-//        let upThreshold: CGFloat = 0.1   // wrist > shoulder
-//        let downThreshold: CGFloat = -0.1 // wrist < shoulder
-//        
-//        if relativeY > upThreshold, lastDirection != .up {
-//            print("\(side) arm flapped up")
-//            lastDirection = .up
-//            return true
-//        } else if relativeY < downThreshold, lastDirection != .down {
-//            print("\(side) arm flapped down")
-//            lastDirection = .down
-//            return true
-//        }
-//        return false
-//    private func flying(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool{
-//        guard let rightWrist = detectedPoints[.rightWrist],
-//              let leftWrist = detectedPoints[.leftWrist],
-//              let rightElbow = detectedPoints[.rightElbow],
-//              let leftElbow = detectedPoints[.leftElbow],
-//              let rightShoulder = detectedPoints[.rightShoulder],
-//              let leftShoulder = detectedPoints[.leftShoulder]else{
-//            return false
-//        }
-//        let rightElbowAligned = (rightElbow.y - rightShoulder.y) < 0.05
-//        let leftElbowAligned = (leftElbow.y - leftShoulder.y) < 0.05
-//        let rightWristAligned = (rightWrist.y - rightWrist.y) < 0.05
-//        let leftWristAligned = (leftWrist.y - leftShoulder.y) < 0.05
-//        
-//        let leftElbowDistance = abs(leftElbow.x - leftShoulder.x)
-//        let rightElbowDistance = abs(rightElbow.x - rightShoulder.x)
-//        let leftWristDistance = abs(leftWrist.x - leftShoulder.x)
-//        let rightWristDistance = abs(rightWrist.x - leftShoulder.x)
-//        
-//        let leftWristCloser = leftWristDistance < leftElbowDistance
-//        let rightWristCloser = rightWristDistance < rightElbowDistance
-//        
-//        let bothAligned = leftElbowAligned && rightElbowAligned && leftWristAligned && rightWristAligned
-//        let bothWristCloser = leftWristCloser && rightWristCloser
-//        if bothAligned && bothWristCloser{
-//            return true
-//        }
-//        return false
-//    }
+    //    private func detectFlap(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint])->Bool {
+    //        guard let rightWrist = detectedPoints[.rightWrist],
+    //              let rightShoulder = detectedPoints[.rightShoulder],
+    //              let leftWrist = detectedPoints[.leftWrist],
+    //              let leftShoulder = detectedPoints[.leftShoulder] else {
+    //            return false
+    //        }
+    //
+    //        // wrist vs shoulder
+    //        let rightRelativeY = rightWrist.y - rightShoulder.y
+    //        let leftRelativeY  = leftWrist.y - leftShoulder.y
+    //
+    //        rightWristHistory.append(rightRelativeY)
+    //        leftWristHistory.append(leftRelativeY)
+    //
+    //        if rightWristHistory.count > historyLimit { rightWristHistory.removeFirst() }
+    //        if leftWristHistory.count > historyLimit { leftWristHistory.removeFirst() }
+    //
+    //        // detect up vs down
+    //        let rightFlap = detectSingleFlap(relativeY: rightRelativeY, lastDirection: &lastRightFlap, side: "right")//check
+    //        let leftFlap = detectSingleFlap(relativeY: leftRelativeY, lastDirection: &lastLeftFlap, side: "left")//check
+    //        return rightFlap || leftFlap
+    //    }
+    //
+    //    private func detectSingleFlap(relativeY: CGFloat, lastDirection: inout FlapDirection, side: String)-> Bool {
+    //        let upThreshold: CGFloat = 0.1   // wrist > shoulder
+    //        let downThreshold: CGFloat = -0.1 // wrist < shoulder
+    //
+    //        if relativeY > upThreshold, lastDirection != .up {
+    //            print("\(side) arm flapped up")
+    //            lastDirection = .up
+    //            return true
+    //        } else if relativeY < downThreshold, lastDirection != .down {
+    //            print("\(side) arm flapped down")
+    //            lastDirection = .down
+    //            return true
+    //        }
+    //        return false
+    //    private func flying(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool{
+    //        guard let rightWrist = detectedPoints[.rightWrist],
+    //              let leftWrist = detectedPoints[.leftWrist],
+    //              let rightElbow = detectedPoints[.rightElbow],
+    //              let leftElbow = detectedPoints[.leftElbow],
+    //              let rightShoulder = detectedPoints[.rightShoulder],
+    //              let leftShoulder = detectedPoints[.leftShoulder]else{
+    //            return false
+    //        }
+    //        let rightElbowAligned = (rightElbow.y - rightShoulder.y) < 0.05
+    //        let leftElbowAligned = (leftElbow.y - leftShoulder.y) < 0.05
+    //        let rightWristAligned = (rightWrist.y - rightWrist.y) < 0.05
+    //        let leftWristAligned = (leftWrist.y - leftShoulder.y) < 0.05
+    //
+    //        let leftElbowDistance = abs(leftElbow.x - leftShoulder.x)
+    //        let rightElbowDistance = abs(rightElbow.x - rightShoulder.x)
+    //        let leftWristDistance = abs(leftWrist.x - leftShoulder.x)
+    //        let rightWristDistance = abs(rightWrist.x - leftShoulder.x)
+    //
+    //        let leftWristCloser = leftWristDistance < leftElbowDistance
+    //        let rightWristCloser = rightWristDistance < rightElbowDistance
+    //
+    //        let bothAligned = leftElbowAligned && rightElbowAligned && leftWristAligned && rightWristAligned
+    //        let bothWristCloser = leftWristCloser && rightWristCloser
+    //        if bothAligned && bothWristCloser{
+    //            return true
+    //        }
+    //        return false
+    //    }
     let straightArmMinAngle: CGFloat = 160.0   // minimum elbow angle to consider "straight"
     let shoulderHeightTolerance: CGFloat = 0.1
     private func flying(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool{
@@ -321,23 +321,23 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         
         return leftArmStraight && rightArmStraight
     }
-//    private func cutting(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint])-> Bool{
-//        guard let rightWrist = detectedPoints[.rightWrist],
-//              let leftWrist = detectedPoints[.leftWrist],
-//              let nose = detectedPoints[.nose],
-//              let rightShoulder = detectedPoints[.rightShoulder],
-//              let leftShoulder = detectedPoints[.leftShoulder],
-//              let rightElbow = detectedPoints[.rightElbow],
-//              let leftElbow = detectedPoints[.leftElbow]else{
-//            return false
-//        }
-//        let elbowAligned = ((rightElbow.y - rightShoulder.y) < 0.05 || (leftElbow.y - leftShoulder.y) < 0.05)
-//        let wristAligned = ((rightWrist.y - nose.y) < 0.05 || (leftWrist.y - nose.y) < 0.05)
-//        if elbowAligned && wristAligned{
-//            return true
-//        }
-//        return false
-//    }
+    //    private func cutting(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint])-> Bool{
+    //        guard let rightWrist = detectedPoints[.rightWrist],
+    //              let leftWrist = detectedPoints[.leftWrist],
+    //              let nose = detectedPoints[.nose],
+    //              let rightShoulder = detectedPoints[.rightShoulder],
+    //              let leftShoulder = detectedPoints[.leftShoulder],
+    //              let rightElbow = detectedPoints[.rightElbow],
+    //              let leftElbow = detectedPoints[.leftElbow]else{
+    //            return false
+    //        }
+    //        let elbowAligned = ((rightElbow.y - rightShoulder.y) < 0.05 || (leftElbow.y - leftShoulder.y) < 0.05)
+    //        let wristAligned = ((rightWrist.y - nose.y) < 0.05 || (leftWrist.y - nose.y) < 0.05)
+    //        if elbowAligned && wristAligned{
+    //            return true
+    //        }
+    //        return false
+    //    }
     let straightArmMax: CGFloat = 150.0       // elbow angle must be less than this (bent arm)
     let chestHeightTolerance: CGFloat = 0.1   // y difference tolerance
     let minHorizontalOffset: CGFloat = 0.05
@@ -354,18 +354,18 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         guard elbowAligned && wristAligned else { return false }
         let horizontalOffset = abs(rightWrist.x - rightShoulder.x)
         guard horizontalOffset > minHorizontalOffset else { return false }
-                    
+        
         return true
     }
     private func elbowAngle(shoulder: CGPoint, elbow: CGPoint, wrist: CGPoint)-> CGFloat{
         let v1 = CGPoint(x: shoulder.x - elbow.x, y: shoulder.y - elbow.y)
         let v2 = CGPoint(x: wrist.x - elbow.x, y: wrist.y - elbow.y)
-                
+        
         let dot = v1.x * v2.x + v1.y * v2.y
         let mag1 = sqrt(v1.x*v1.x + v1.y*v1.y)
         let mag2 = sqrt(v2.x*v2.x + v2.y*v2.y)
         guard mag1 > 0, mag2 > 0 else { return 0 }
-                
+        
         let cosTheta = max(-1.0, min(1.0, dot / (mag1 * mag2)))
         return acos(cosTheta) * 180.0 / .pi
     }
