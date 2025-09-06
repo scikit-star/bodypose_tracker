@@ -63,12 +63,8 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
                         self.detectedPose = "Hands on Head Detected!"
                     }else if self.cutting(from: detectedPoints){
                         self.detectedPose = "Cutting detected!"
-                    }else if self.climbing(from: detectedPoints) {
-                        self.detectedPose = "Climbing detected!"
                     }else if self.flying(from: detectedPoints) {
-                        self.detectedPose = "HandsOnHead"
-                    }else if self.climbing(from: detectedPoints) {
-                        self.detectedPose = "Climbing"
+                        self.detectedPose = "Flying detected!"
                     }else if self.detectClap(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
                         self.detectedPose = "Clap"
                     }
@@ -97,7 +93,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     
     private func extractPoints(from observation: HumanBodyPoseObservation) -> [HumanBodyPoseObservation.JointName: CGPoint] {
         var detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint] = [:]
-        var humanJoints: [HumanBodyPoseObservation.PoseJointsGroupName] = [.face, .torso, .leftArm, .rightArm] // process all body regions inside the array for pose estimation
+        var humanJoints: [HumanBodyPoseObservation.PoseJointsGroupName] = [.face, .torso, .leftArm, .rightArm, .leftLeg] // process all body regions inside the array for pose estimation
         
         for groupName in humanJoints {
             let jointsInGroup = observation.allJoints(in: groupName)
@@ -122,7 +118,25 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         
         return distance < 190
     }
-    private func detectSwimming(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint], frameWidth: CGFloat, frameHeight: CGFloat) -> Bool {
+    func angleBetweenJoints(shoulder: CGPoint, elbow: CGPoint, wrist: CGPoint) -> CGFloat {
+        let shoulderToElbowDX = shoulder.x - elbow.x //finds vector
+        let shoulderToElbowDY = shoulder.y - elbow.y
+        let wristToElbowDX = wrist.x - elbow.x
+        let wristToElbowDY = wrist.y - elbow.y
+        
+        let dot = (shoulderToElbowDX * wristToElbowDX) + (shoulderToElbowDY * wristToElbowDY) //finds how aligned the two vectors are
+        let shoulderToElbowMag = sqrt((shoulderToElbowDX * shoulderToElbowDX) + (shoulderToElbowDY * shoulderToElbowDY))
+        let wristToElbowMag = sqrt((wristToElbowDX * wristToElbowDX) + (wristToElbowDY * wristToElbowDY))
+        guard shoulderToElbowMag > 0 && wristToElbowMag > 0 else { return 0 }
+        
+        let cosTheta = dot / (shoulderToElbowMag * wristToElbowMag)
+        let clampedCos = max(-1, min(1, cosTheta))
+        let angle = acos(clampedCos) * 180 / .pi
+        
+        return angle
+    }
+
+     func detectSwimming(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint], frameWidth: CGFloat, frameHeight: CGFloat) -> Bool {
         guard let rightShoulder = detectedPoints[.rightShoulder],
               let leftShoulder = detectedPoints[.leftShoulder],
               let rightElbow = detectedPoints[.rightElbow],
@@ -132,24 +146,8 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
               let nose = detectedPoints[.nose] else {
             return false
         }
-        func angleBetweenJoints(shoulder: CGPoint, elbow: CGPoint, wrist: CGPoint) -> CGFloat {
-            let shoulderToElbowDX = shoulder.x - elbow.x //finds vector
-            let shoulderToElbowDY = shoulder.y - elbow.y
-            let wristToElbowDX = wrist.x - elbow.x
-            let wristToElbowDY = wrist.y - elbow.y
-            
-            let dot = (shoulderToElbowDX * wristToElbowDX) + (shoulderToElbowDY * wristToElbowDY) //finds how aligned the two vectors are
-            let shoulderToElbowMag = sqrt((shoulderToElbowDX * shoulderToElbowDX) + (shoulderToElbowDY * shoulderToElbowDY))
-            let wristToElbowMag = sqrt((wristToElbowDX * wristToElbowDX) + (wristToElbowDY * wristToElbowDY))
-            guard shoulderToElbowMag > 0 && wristToElbowMag > 0 else { return 0 }
-            
-            let cosTheta = dot / (shoulderToElbowMag * wristToElbowMag)
-            let clampedCos = max(-1, min(1, cosTheta))
-            let angle = acos(clampedCos) * 180 / .pi
-            
-            return angle
-        }
         
+    
         //        let dxForWrist = (rightWrist.x - leftWrist.x) * frameWidth
         //        let dyForWrist = (rightWrist.y - leftWrist.y) * frameHeight
         //        let distance = sqrt((dxForWrist * dxForWrist) + (dyForWrist * dyForWrist))
@@ -299,28 +297,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     //        return false
     //    }
     let straightArmMinAngle: CGFloat = 160.0   // minimum elbow angle to consider "straight"
-    let shoulderHeightTolerance: CGFloat = 0.1
-    private func flying(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint]) -> Bool{
-        guard let rightWrist = detectedPoints[.rightWrist],
-              let leftWrist = detectedPoints[.leftWrist],
-              let rightShoulder = detectedPoints[.rightShoulder],
-              let leftShoulder = detectedPoints[.leftShoulder],
-              let rightElbow = detectedPoints[.rightElbow],
-              let leftElbow = detectedPoints[.leftElbow]else{
-            return false
-        }
-        let leftElbowAngle = elbowAngle(shoulder: leftShoulder, elbow: leftElbow, wrist: leftWrist)
-        let leftElbowAligned = abs(leftElbow.y - leftShoulder.y) < shoulderHeightTolerance
-        let leftWristAligned = abs(leftWrist.y - leftShoulder.y) < shoulderHeightTolerance
-        let leftArmStraight = leftElbowAngle > straightArmMinAngle && leftElbowAligned && leftWristAligned
-        
-        let rightElbowAngle = elbowAngle(shoulder: rightShoulder, elbow: rightElbow, wrist: rightWrist)
-        let rightElbowAligned = abs(rightElbow.y - rightShoulder.y) < shoulderHeightTolerance
-        let rightWristAligned = abs(rightWrist.y - rightShoulder.y) < shoulderHeightTolerance
-        let rightArmStraight = rightElbowAngle > straightArmMinAngle && rightElbowAligned && rightWristAligned
-        
-        return leftArmStraight && rightArmStraight
-    }
+    let shoulderHeightTolerance: CGFloat = 0.5 //changed, let's see if it works
     //    private func cutting(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint])-> Bool{
     //        guard let rightWrist = detectedPoints[.rightWrist],
     //              let leftWrist = detectedPoints[.leftWrist],
@@ -369,7 +346,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         let cosTheta = max(-1.0, min(1.0, dot / (mag1 * mag2)))
         return acos(cosTheta) * 180.0 / .pi
     }
-    private func climbing(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint])-> Bool{
+    private func flying(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint])-> Bool{
         guard let rightWrist = detectedPoints[.rightWrist],
               let leftWrist = detectedPoints[.leftWrist],
               let nose = detectedPoints[.nose]else{

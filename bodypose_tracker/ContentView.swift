@@ -136,19 +136,20 @@ struct ContentView: View {
             //        ZStack {
             //            VStack {
             //                HStack {
-            //                    ZStack {
-            //                        CameraPreviewView(session: cameraViewModel.session)
-            //                            .edgesIgnoringSafeArea(.all)
-            //                        PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
-            //                    }
+                                ZStack {
+                                    CameraPreviewView(session: cameraViewModel.session)
+                                        .edgesIgnoringSafeArea(.all)
+                                    PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
+                                }
+            Text(poseViewModel.detectedPose)
             //                    .frame(width: 100, height: 150)
             //                    Spacer()
             //                }
             //                Spacer()
             //            }
-            SpriteView(scene: scene)
-                .ignoresSafeArea()
-            //        }
+//            SpriteView(scene: scene)
+//                .ignoresSafeArea()
+//            //        }
         }
         .task {
             await cameraViewModel.checkpermission()
