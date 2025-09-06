@@ -136,7 +136,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         return angle
     }
 
-     func detectSwimming(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint], frameWidth: CGFloat, frameHeight: CGFloat) -> Bool {
+     private func detectSwimming(from detectedPoints: [HumanBodyPoseObservation.JointName: CGPoint], frameWidth: CGFloat, frameHeight: CGFloat) -> Bool {
         guard let rightShoulder = detectedPoints[.rightShoulder],
               let leftShoulder = detectedPoints[.leftShoulder],
               let rightElbow = detectedPoints[.rightElbow],
