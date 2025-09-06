@@ -16,6 +16,12 @@ class GameScene: SKScene {
     private var minInterval: TimeInterval = 0.5
     private var spawnAcceleration: TimeInterval = 0.05
     var character: SKSpriteNode!
+    let stickmanTexture = SKTexture(imageNamed: "stickmanObstacle")
+    let grassTexture = SKTexture(imageNamed: "grassObstacle")
+    let blockTexture = SKTexture(imageNamed: "blockObstacle")
+    let holeTexture = SKTexture(imageNamed: "holeObstacle")
+    let waterTexture = SKTexture(imageNamed: "waterObstacle")
+    let dragonTexture = SKTexture(imageNamed: "dragon")
     
     override func didMove(to view: SKView) {
         physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
@@ -43,27 +49,88 @@ class GameScene: SKScene {
         //        let (leftx, rightx) = xBoundsForRoad(y: startY, bottomWidth: bottomWidth, topWidth: topWidth, roadHeight: roadHeight)
         let X = size.width / 2
         
-        let types = ["People", "Grass", "Block", "Hole", "Water", "Dragon", "Tunnel"]
+        let types = ["People", "Grass", "Block", "Hole", "Water", "Dragon"]
         let type = types.randomElement() ?? types[0]
         var obstacle: SKSpriteNode? = nil
         
         switch type {
         case "People":
-            obstacle = SKSpriteNode(color: .systemPink, size: CGSize(width: 60, height: 60))
+            let rectangularStickman = SKSpriteNode(texture: stickmanTexture)
+            rectangularStickman.size = CGSize(width: 200, height: 120)
+            rectangularStickman.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 200, height: 120))
+            rectangularStickman.physicsBody?.isDynamic = false
+            
+            rectangularStickman.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
+            rectangularStickman.physicsBody?.collisionBitMask = PhysicsCategory.player
+            rectangularStickman.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            
+            obstacle = rectangularStickman
         case "Grass":
-            obstacle = SKSpriteNode(color: .green, size: CGSize(width: 60, height: 60))
+            let texturedGrass = SKSpriteNode(texture: grassTexture)
+            texturedGrass.size = CGSize(width: 200, height: 120)
+            texturedGrass.physicsBody = SKPhysicsBody(texture: grassTexture, size: CGSize(width: 200, height: 120))
+            texturedGrass.physicsBody?.isDynamic = false
+            
+            texturedGrass.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
+            texturedGrass.physicsBody?.collisionBitMask = PhysicsCategory.player
+            texturedGrass.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            
+            obstacle = texturedGrass
         case "Block":
-            obstacle = SKSpriteNode(color: .purple, size: CGSize(width: 60, height: 60))
+            let texturedBlock = SKSpriteNode(texture: blockTexture)
+            texturedBlock.size = CGSize(width: 200, height: 120)
+            texturedBlock.physicsBody = SKPhysicsBody(texture: blockTexture, size: CGSize(width: 200, height: 120))
+            texturedBlock.physicsBody?.isDynamic = false
+            
+            texturedBlock.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
+            texturedBlock.physicsBody?.collisionBitMask = PhysicsCategory.player
+            texturedBlock.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            
+            obstacle = texturedBlock
         case "Hole":
-            obstacle = SKSpriteNode(color: .cyan, size: CGSize(width: 60, height: 60))
+            let texturedHole = SKSpriteNode(texture: holeTexture)
+            texturedHole.size = CGSize(width: 200, height: 120)
+            texturedHole.physicsBody = SKPhysicsBody(texture: holeTexture, size: CGSize(width: 200, height: 200))
+            texturedHole.physicsBody?.isDynamic = false
+            
+            texturedHole.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
+            texturedHole.physicsBody?.collisionBitMask = PhysicsCategory.player
+            texturedHole.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            
+            obstacle = texturedHole
         case "Water":
-            obstacle = SKSpriteNode(color: .blue, size: CGSize(width: 60, height: 60))
+            let texturedWater = SKSpriteNode(texture: waterTexture)
+            texturedWater.size = CGSize(width: 200, height: 120)
+            texturedWater.physicsBody = SKPhysicsBody(texture: waterTexture, size: CGSize(width: 200, height: 200))
+            texturedWater.physicsBody?.isDynamic = false
+            
+            texturedWater.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
+            texturedWater.physicsBody?.collisionBitMask = PhysicsCategory.player
+            texturedWater.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            
+            obstacle = texturedWater
         case "Dragon":
-            obstacle = SKSpriteNode(color: .red, size: CGSize(width: 60, height: 60))
-        case "Tunnel":
-            obstacle = SKSpriteNode(color: .white, size: CGSize(width: 60, height: 60))
+            let texturedDragon = SKSpriteNode(texture: dragonTexture)
+            texturedDragon.size = CGSize(width: 200, height: 120)
+            texturedDragon.physicsBody = SKPhysicsBody(texture: dragonTexture, size: CGSize(width: 200, height: 200))
+            texturedDragon.physicsBody?.isDynamic = false
+            
+            texturedDragon.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
+            texturedDragon.physicsBody?.collisionBitMask = PhysicsCategory.player
+            texturedDragon.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            
+            obstacle = texturedDragon
         default:
-            obstacle = SKSpriteNode(color: .gray, size: CGSize(width: 60, height: 60))
+            let rectangularStickman = SKSpriteNode(texture: stickmanTexture)
+            rectangularStickman.size = CGSize(width: 200, height: 120)
+            rectangularStickman.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 200, height: 120))
+            rectangularStickman.physicsBody?.isDynamic = false
+            
+            rectangularStickman.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
+            rectangularStickman.physicsBody?.collisionBitMask = PhysicsCategory.player
+            rectangularStickman.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            
+            obstacle = rectangularStickman
         }
         
         obstacle?.setScale(0.5)
@@ -162,12 +229,12 @@ struct ContentView: View {
     }
     var body: some View {
         VStack {
-//            ZStack {
-//                CameraPreviewView(session: cameraViewModel.session)
-//                    .edgesIgnoringSafeArea(.all)
-//                PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
-//            }
-//            Text(poseViewModel.detectedPose)
+            //            ZStack {
+            //                CameraPreviewView(session: cameraViewModel.session)
+            //                    .edgesIgnoringSafeArea(.all)
+            //                PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
+            //            }
+            //            Text(poseViewModel.detectedPose)
             SpriteView(scene: scene)
                 .ignoresSafeArea()
         }
@@ -180,4 +247,13 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+}
+
+
+
+
+struct PhysicsCategory {
+    static let none: UInt32 = 0
+    static let player: UInt32 = 0b1
+    static let obstacle: UInt32 = 0b10
 }
