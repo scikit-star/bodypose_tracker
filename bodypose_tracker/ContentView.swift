@@ -146,7 +146,7 @@ class GameScene: SKScene {
     func initiateCharacter(){
         let firstFrame = SKTexture(imageNamed: "IMG_0596-removebg-preview 1")
         character = SKSpriteNode(texture: firstFrame)
-        character.position = CGPoint(x: size.width * 0.2, y: size.height * 0.3)
+        character.position = CGPoint(x: size.width * 0.5, y: size.height * 0.3)
         addChild(character)
         startRunningAnimation()
     }
