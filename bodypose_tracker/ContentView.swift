@@ -15,6 +15,7 @@ class GameScene: SKScene {
     private var waitInterval: TimeInterval = 3.5
     private var minInterval: TimeInterval = 0.5
     private var spawnAcceleration: TimeInterval = 0.05
+    var character: SKSpriteNode!
     
     override func didMove(to view: SKView) {
         physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
@@ -24,6 +25,7 @@ class GameScene: SKScene {
         }
         let waitAction = SKAction.wait(forDuration: waitInterval)
         run(SKAction.repeatForever(SKAction.sequence([spawnAction, waitAction])))
+        initiateCharacter()
     }
     
     //    func xBoundsForRoad(y: CGFloat, bottomWidth: CGFloat, topWidth: CGFloat, roadHeight: CGFloat) -> (left: CGFloat, right: CGFloat) {
@@ -73,6 +75,33 @@ class GameScene: SKScene {
         let group = SKAction.group([moveAction, scaleBigger])
         let remove = SKAction.removeFromParent()
         obstacle!.run(SKAction.sequence([group, remove]))
+    }
+    func initiateCharacter(){
+        let firstFrame = SKTexture(imageNamed: "IMG_0596-removebg-preview 1")
+        character = SKSpriteNode(texture: firstFrame)
+        character.position = CGPoint(x: size.width * 0.2, y: size.height * 0.3)
+        addChild(character)
+        startRunningAnimation()
+    }
+    func startRunningAnimation(){
+        let frames = [
+            SKTexture(imageNamed: "IMG_0596-removebg-preview 1"),
+            SKTexture(imageNamed: "IMG_0596-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0599-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0600-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0602-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0603-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0604-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0605_1_-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0606-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0607-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0609-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0611-removebg-preview"),
+            
+        ]
+        let runningAction = SKAction.animate(with: frames, timePerFrame: 0.1)
+        let repeatRun = SKAction.repeatForever(runningAction)
+        character.run(repeatRun)
     }
     
     func createRoad() {
