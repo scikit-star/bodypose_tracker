@@ -10,11 +10,12 @@ import AVFoundation
 import Vision
 import SpriteKit
 
-class GameScene: SKScene {
+class GameScene: SKScene, SKPhysicsContactDelegate {
     private var spawnInterval: TimeInterval = 4.0
     private var waitInterval: TimeInterval = 3.5
     private var minInterval: TimeInterval = 0.5
     private var spawnAcceleration: TimeInterval = 0.05
+    var currentPose: String? { didSet { handlePose(currentPose)}}
     var character: SKSpriteNode!
     let stickmanTexture = SKTexture(imageNamed: "stickmanObstacle")
     let grassTexture = SKTexture(imageNamed: "grassObstacle")
@@ -25,6 +26,7 @@ class GameScene: SKScene {
     
     override func didMove(to view: SKView) {
         physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
+        physicsWorld.contactDelegate = self
         createRoad()
         let spawnAction = SKAction.run { [weak self] in
             self?.spawnRandomObstacle()
@@ -32,6 +34,15 @@ class GameScene: SKScene {
         let waitAction = SKAction.wait(forDuration: waitInterval)
         run(SKAction.repeatForever(SKAction.sequence([spawnAction, waitAction])))
         initiateCharacter()
+    }
+    
+    func didBegin(_ contact: SKPhysicsContact) {
+        let playerHitObstacle = (contact.bodyA.categoryBitMask == PhysicsCategory.player && contact.bodyB.categoryBitMask == PhysicsCategory.obstacle) || (contact.bodyA.categoryBitMask == PhysicsCategory.obstacle && contact.bodyB.categoryBitMask == PhysicsCategory.player)
+        if playerHitObstacle {
+            print("Game Over")
+        }else {
+            print("aaa")
+        }
     }
     
     //    func xBoundsForRoad(y: CGFloat, bottomWidth: CGFloat, topWidth: CGFloat, roadHeight: CGFloat) -> (left: CGFloat, right: CGFloat) {
@@ -147,6 +158,11 @@ class GameScene: SKScene {
         let firstFrame = SKTexture(imageNamed: "IMG_0596-removebg-preview 1")
         character = SKSpriteNode(texture: firstFrame)
         character.position = CGPoint(x: size.width * 0.5, y: size.height * 0.3)
+        character.physicsBody = SKPhysicsBody(rectangleOf: character.size)
+//        character.physicsBody?.isDynamic = false
+        character.physicsBody?.categoryBitMask = PhysicsCategory.player
+        character.physicsBody?.collisionBitMask = PhysicsCategory.obstacle
+        character.physicsBody?.contactTestBitMask = PhysicsCategory.obstacle
         addChild(character)
         startRunningAnimation()
     }
@@ -169,6 +185,31 @@ class GameScene: SKScene {
         let runningAction = SKAction.animate(with: frames, timePerFrame: 0.1)
         let repeatRun = SKAction.repeatForever(runningAction)
         character.run(repeatRun)
+    }
+    
+    private func handlePose(_ pose: String?) {
+        guard let pose = pose else { return }
+        switch pose {
+            //        switch pose {
+            
+        case "HandsOnHead":
+            print("HandsOnHead")
+            
+        case "Clap":
+            print("Clap")
+            
+        case "Swimming":
+            print("Swimming")
+            
+        case "Flying":
+            print("Flying")
+            
+        case "Cutting":
+            print("Cutting")
+            
+        default:
+            print("No Pose Detected")
+        }
     }
     
     func createRoad() {
@@ -225,6 +266,7 @@ struct ContentView: View {
         let scene = GameScene()
         scene.size = CGSize(width: 400, height: 800)
         scene.scaleMode = .resizeFill
+        poseViewModel.gameScene = scene
         return scene
     }
     var body: some View {
