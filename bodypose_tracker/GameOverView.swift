@@ -8,11 +8,21 @@
 import SwiftUI
 
 struct GameOverView: View {
+    @Binding var gameOver: Bool
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Text("Game Over")
+            .font(.largeTitle)
+            .bold()
+            .padding()
+        Button {
+            gameOver = false
+        }label: {
+            Text("Try Again")
+        }
+        .buttonStyle(.borderedProminent)
     }
 }
 
 #Preview {
-    GameOverView()
+    GameOverView(gameOver: .constant(false))
 }

@@ -15,7 +15,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var waitInterval: TimeInterval = 3.5
     private var minInterval: TimeInterval = 0.5
     private var spawnAcceleration: TimeInterval = 0.05
-    var gameOver: Bool = false
+    var viewModel: GameViewModel?
     var currentPose: String? { didSet { handlePose(currentPose)}}
     var character: SKSpriteNode!
     let stickmanTexture = SKTexture(imageNamed: "stickmanObstacle")
@@ -40,7 +40,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func didBegin(_ contact: SKPhysicsContact) {
         let playerHitObstacle = (contact.bodyA.categoryBitMask == PhysicsCategory.character && contact.bodyB.categoryBitMask == PhysicsCategory.obstacle) || (contact.bodyA.categoryBitMask == PhysicsCategory.obstacle && contact.bodyB.categoryBitMask == PhysicsCategory.character)
         if playerHitObstacle {
-            gameOver = true
+            print("Game Over")
+            viewModel?.gameOver = true
         }
     }
     
@@ -159,9 +160,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         static let character: UInt32 = 0x1 << 0
         static let obstacle: UInt32  = 0x1 << 1
     }
-
+    
     func initiateCharacter(){
-                let firstFrame = SKTexture(imageNamed: "IMG_0596-removebg-preview 1")
+        let firstFrame = SKTexture(imageNamed: "IMG_0596-removebg-preview 1")
         character = SKSpriteNode(texture: firstFrame)
         character.physicsBody = SKPhysicsBody(rectangleOf: character.size)
         character.physicsBody?.categoryBitMask = PhysicsCategory.character
@@ -177,7 +178,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(character)
         startRunningAnimation()
     }
-        func startRunningAnimation(){
+    func startRunningAnimation(){
         let frames = [
             SKTexture(imageNamed: "IMG_0596-removebg-preview 1"),
             SKTexture(imageNamed: "IMG_0596-removebg-preview"),
@@ -274,17 +275,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 struct ContentView: View {
     @State private var cameraViewModel = CameraViewModel()
     @State private var poseViewModel = PoseEstimationViewModel()
-    @State private var gameOverContentView: Bool = false
+    @StateObject private var viewModel = GameViewModel()
     var scene: SKScene {
         let scene = GameScene()
         scene.size = CGSize(width: 400, height: 800)
         scene.scaleMode = .resizeFill
         poseViewModel.gameScene = scene
-        scene.gameOver = gameOverContentView
+        scene.viewModel = viewModel
         return scene
     }
     var body: some View {
-        if !gameOverContentView{
+        if !viewModel.gameOver {
             SpriteView(scene: scene)
                 .ignoresSafeArea()
                 .overlay(
@@ -312,9 +313,15 @@ struct ContentView: View {
                     cameraViewModel.delegate = poseViewModel
                 }
         }else {
-            GameOverView()
+            GameOverView(gameOver: $viewModel.gameOver)
         }
     }
+}
+
+
+
+class GameViewModel: ObservableObject {
+    @Published var gameOver: Bool = false
 }
 
 #Preview {
