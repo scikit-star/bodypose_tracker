@@ -158,11 +158,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let firstFrame = SKTexture(imageNamed: "IMG_0596-removebg-preview 1")
         character = SKSpriteNode(texture: firstFrame)
         character.position = CGPoint(x: size.width * 0.5, y: size.height * 0.3)
-        character.physicsBody = SKPhysicsBody(rectangleOf: character.size)
-//        character.physicsBody?.isDynamic = false
-        character.physicsBody?.categoryBitMask = PhysicsCategory.player
-        character.physicsBody?.collisionBitMask = PhysicsCategory.obstacle
-        character.physicsBody?.contactTestBitMask = PhysicsCategory.obstacle
+//        character.physicsBody = SKPhysicsBody(rectangleOf: character.size)
+////        character.physicsBody?.isDynamic = false
+//        character.physicsBody?.categoryBitMask = PhysicsCategory.player
+//        character.physicsBody?.collisionBitMask = PhysicsCategory.obstacle
+//        character.physicsBody?.contactTestBitMask = PhysicsCategory.obstacle
         addChild(character)
         startRunningAnimation()
     }
