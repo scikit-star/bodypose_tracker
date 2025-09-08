@@ -144,6 +144,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             obstacle = rectangularStickman
         }
         
+        obstacle?.zPosition = 5
         obstacle?.setScale(0.5)
         obstacle?.position = CGPoint(x: X, y: startY)
         addChild(obstacle!)
@@ -158,11 +159,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let firstFrame = SKTexture(imageNamed: "IMG_0596-removebg-preview 1")
         character = SKSpriteNode(texture: firstFrame)
         character.position = CGPoint(x: size.width * 0.5, y: size.height * 0.3)
-//        character.physicsBody = SKPhysicsBody(rectangleOf: character.size)
-////        character.physicsBody?.isDynamic = false
-//        character.physicsBody?.categoryBitMask = PhysicsCategory.player
-//        character.physicsBody?.collisionBitMask = PhysicsCategory.obstacle
-//        character.physicsBody?.contactTestBitMask = PhysicsCategory.obstacle
+        character.zPosition = 10
+        //        character.physicsBody = SKPhysicsBody(rectangleOf: character.size)
+        //        character.physicsBody?.isDynamic = false
+        //        character.physicsBody?.categoryBitMask = PhysicsCategory.player
+        //        character.physicsBody?.collisionBitMask = PhysicsCategory.obstacle
+        //        character.physicsBody?.contactTestBitMask = PhysicsCategory.obstacle
         addChild(character)
         startRunningAnimation()
     }
@@ -225,6 +227,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         roadPath.closeSubpath()
         
         let road = SKShapeNode(path: roadPath)
+        road.zPosition = 0
         road.fillColor = .black
         road.lineWidth = 4
         addChild(road)
@@ -270,20 +273,32 @@ struct ContentView: View {
         return scene
     }
     var body: some View {
-        VStack {
-            //            ZStack {
-            //                CameraPreviewView(session: cameraViewModel.session)
-            //                    .edgesIgnoringSafeArea(.all)
-            //                PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
-            //            }
-            //            Text(poseViewModel.detectedPose)
-            SpriteView(scene: scene)
-                .ignoresSafeArea()
-        }
-        .task {
-            await cameraViewModel.checkpermission()
-            cameraViewModel.delegate = poseViewModel
-        }
+        SpriteView(scene: scene)
+            .ignoresSafeArea()
+            .overlay(
+                VStack {
+                    HStack {
+                        VStack {
+                            ZStack {
+                                CameraPreviewView(session: cameraViewModel.session)
+                                //                    .edgesIgnoringSafeArea(.all)
+                                PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
+                            }
+                            .frame(width: 150, height: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .padding()
+                            Text(poseViewModel.detectedPose)
+                                .padding()
+                            Spacer()
+                        }
+                        Spacer()
+                    }
+                }
+            )
+            .task {
+                await cameraViewModel.checkpermission()
+                cameraViewModel.delegate = poseViewModel
+            }
     }
 }
 
