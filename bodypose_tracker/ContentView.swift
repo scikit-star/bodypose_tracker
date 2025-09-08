@@ -30,9 +30,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var viewModel: GameViewModel?
     var currentPose: String? { didSet { handlePose(currentPose)}}
     var character: SKSpriteNode!
-
     var currentObstacle: String!
-
+    
     var playerState: PlayerState = .run
     var runAction: SKAction!
     var swimAction: SKAction!
@@ -40,7 +39,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var bombAction: SKAction!
     var flyAction: SKAction!
     var crashoutAction: SKAction!
-
+    
     let stickmanTexture = SKTexture(imageNamed: "stickmanObstacle")
     let grassTexture = SKTexture(imageNamed: "grassObstacle")
     let blockTexture = SKTexture(imageNamed: "blockObstacle")
@@ -52,11 +51,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     init(size: CGSize, model: PoseEstimationViewModel) {
         self.model = model
         super.init(size: size)
-            }
+    }
     required init?(coder aDecoder: NSCoder) {
-            fatalError("init(coder:) has not been implemented")
-        }
-
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func didMove(to view: SKView) {
         physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
         physicsWorld.contactDelegate = self
@@ -74,7 +73,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let playerHitObstacle = (contact.bodyA.categoryBitMask == PhysicsCategory.character && contact.bodyB.categoryBitMask == PhysicsCategory.obstacle) || (contact.bodyA.categoryBitMask == PhysicsCategory.obstacle && contact.bodyB.categoryBitMask == PhysicsCategory.character)
         if playerHitObstacle {
             print("Game Over")
-            if (currentObstacle == "People" && currentPose == "HandsOnHead") || (currentObstacle == "Grass" && currentPose == "Cutting") || (currentObstacle == "Grass" && currentPose == "Flying") || (currentObstacle == "Block" && currentPose == "Flying") || (currentObstacle == "Hole" && currentPose == "Flying") || (currentObstacle == "Water" && currentPose == "Swimming") || (currentObstacle == "Dragon" && currentPose == "Clap"){
+            if (currentObstacle == "People" && model.detectedPose == "Hands on Head Detected!") || (currentObstacle == "Grass" && model.detectedPose == "Cutting detected!") || (currentObstacle == "Grass" && model.detectedPose == "Flying detected!") || (currentObstacle == "Block" && model.detectedPose == "Flying detected!") || (currentObstacle == "Hole" && model.detectedPose == "Flying detected!") || (currentObstacle == "Water" && model.detectedPose == "Swimming") || (currentObstacle == "Dragon" && model.detectedPose == "Clap"){
                 obstacle?.removeFromParent()
             }
             viewModel?.gameOver = true
@@ -98,19 +97,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let types = ["People", "Grass", "Block", "Hole", "Water", "Dragon"]
         let type = types.randomElement() ?? types[0]
-//        var obstacle: SKSpriteNode? = nil
+        //        var obstacle: SKSpriteNode? = nil
         
         switch type {
         case "People":
             let rectangularStickman = SKSpriteNode(texture: stickmanTexture)
             let hitboxSize = CGSize(width: rectangularStickman.size.width * 0.09, height: rectangularStickman.size.height * 0.09)
             rectangularStickman.size = CGSize(width: 200, height: 120)
-
+            //            rectangularStickman.setScale(0.5)
             
-
             rectangularStickman.name = "Stickman"
-            rectangularStickman.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 200, height: 120))
-
+            rectangularStickman.physicsBody = SKPhysicsBody(rectangleOf: hitboxSize)
+            
             rectangularStickman.physicsBody?.isDynamic = false
             
             rectangularStickman.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
@@ -122,8 +120,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let texturedGrass = SKSpriteNode(texture: grassTexture)
             let hitboxSize = CGSize(width: texturedGrass.size.width * 0.09, height: texturedGrass.size.height * 0.09)
             texturedGrass.size = CGSize(width: 200, height: 120)
+            //            texturedGrass.setScale(0.5)
             texturedGrass.name = "Grass"
-            texturedGrass.physicsBody = SKPhysicsBody(texture: grassTexture, size: CGSize(width: 200, height: 120))
+            texturedGrass.physicsBody = SKPhysicsBody(rectangleOf: hitboxSize)
             texturedGrass.physicsBody?.isDynamic = false
             
             texturedGrass.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
@@ -135,9 +134,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let texturedBlock = SKSpriteNode(texture: blockTexture)
             let hitboxSize = CGSize(width: texturedBlock.size.width * 0.09, height: texturedBlock.size.height * 0.09)
             texturedBlock.size = CGSize(width: 200, height: 120)
-
+            //            texturedBlock.setScale(0.5)
+            
             texturedBlock.name = "Block"
-            texturedBlock.physicsBody = SKPhysicsBody(texture: blockTexture, size: CGSize(width: 200, height: 120))
+            texturedBlock.physicsBody = SKPhysicsBody(rectangleOf: hitboxSize)
             texturedBlock.physicsBody?.isDynamic = false
             
             texturedBlock.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
@@ -149,8 +149,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let texturedHole = SKSpriteNode(texture: holeTexture)
             let hitboxSize = CGSize(width: texturedHole.size.width * 0.09, height: texturedHole.size.height * 0.09)
             texturedHole.size = CGSize(width: 200, height: 120)
+            //            texturedHole.setScale(0.5)
             texturedHole.name = "Hole"
-            texturedHole.physicsBody = SKPhysicsBody(texture: holeTexture, size: CGSize(width: 200, height: 200))
+            texturedHole.physicsBody = SKPhysicsBody(rectangleOf: hitboxSize)
             texturedHole.physicsBody?.isDynamic = false
             
             texturedHole.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
@@ -162,8 +163,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let texturedWater = SKSpriteNode(texture: waterTexture)
             let hitboxSize = CGSize(width: texturedWater.size.width * 0.09, height: texturedWater.size.height * 0.09)
             texturedWater.size = CGSize(width: 200, height: 120)
+            //            texturedWater.setScale(0.5)
             texturedWater.name = "Water"
-            texturedWater.physicsBody = SKPhysicsBody(texture: waterTexture, size: CGSize(width: 200, height: 200))
+            texturedWater.physicsBody = SKPhysicsBody(rectangleOf: hitboxSize)
             texturedWater.physicsBody?.isDynamic = false
             
             texturedWater.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
@@ -175,8 +177,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let texturedDragon = SKSpriteNode(texture: dragonTexture)
             let hitboxSize = CGSize(width: texturedDragon.size.width * 0.09, height: texturedDragon.size.height * 0.09)
             texturedDragon.size = CGSize(width: 200, height: 120)
+            //            texturedDragon.setScale(0.5)
             texturedDragon.name = "Dragon"
-            texturedDragon.physicsBody = SKPhysicsBody(texture: dragonTexture, size: CGSize(width: 200, height: 200))
+            texturedDragon.physicsBody = SKPhysicsBody(rectangleOf: hitboxSize)
             texturedDragon.physicsBody?.isDynamic = false
             
             texturedDragon.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
@@ -188,8 +191,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let rectangularStickman = SKSpriteNode(texture: stickmanTexture)
             let hitboxSize = CGSize(width: rectangularStickman.size.width * 0.09, height: rectangularStickman.size.height * 0.09)
             rectangularStickman.size = CGSize(width: 200, height: 120)
+            //            rectangularStickman.setScale(0.5)
             rectangularStickman.name = "Stickman"
-            rectangularStickman.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 200, height: 120))
+            rectangularStickman.physicsBody = SKPhysicsBody(rectangleOf: hitboxSize)
             rectangularStickman.physicsBody?.isDynamic = false
             
             rectangularStickman.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
@@ -226,6 +230,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         //character.physicsBody?.contactTestBitMask = PhysicsCategory.
         character.position = CGPoint(x: size.width * 0.5, y: size.height * 0.3)
         character.zPosition = 10
+        character.setScale(0.5)
         //        character.physicsBody = SKPhysicsBody(rectangleOf: character.size)
         //        character.physicsBody?.isDynamic = false
         //        character.physicsBody?.categoryBitMask = PhysicsCategory.player
@@ -234,65 +239,65 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(character)
         startRunningAnimation()
     }
-        func startRunningAnimation(){
-            let swimTextures = [
-                SKTexture(imageNamed: "IMG_0681-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0682-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0683-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0684-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0685-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0686-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0687-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0688-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0689-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0690-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0691-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0692-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0693-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0695-removebg-preview"),
-                
-                
-            ]
-            let flyTextures = [
-                SKTexture(imageNamed: "IMG_0748-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0749-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0750-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0752-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0753-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0754-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0755-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0756-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0757-removebg-preview"),
-                            ]
-            let cutTextures = [
-                SKTexture(imageNamed: "IMG_709-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0710-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0711-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0712-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0718-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0719-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0721-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0722-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0724-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0725-removebg-preview"),
-                        ]
-            let crashoutTextures = [
-                SKTexture(imageNamed: "IMG_0782-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0783-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0786-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0787-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0788-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0789-removebg-preview"),
-                SKTexture(imageNamed: "IMG_0790-removebg-preview"),
-                            ]
-            let bombTextures = [
-                SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
-                SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
-                SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
-                SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
-                SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
-            ]
-
+    func startRunningAnimation(){
+        let swimTextures = [
+            SKTexture(imageNamed: "IMG_0681-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0682-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0683-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0684-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0685-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0686-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0687-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0688-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0689-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0690-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0691-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0692-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0693-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0695-removebg-preview"),
+            
+            
+        ]
+        let flyTextures = [
+            SKTexture(imageNamed: "IMG_0748-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0749-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0750-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0752-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0753-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0754-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0755-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0756-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0757-removebg-preview"),
+        ]
+        let cutTextures = [
+            //SKTexture(imageNamed: "IMG_709-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0710-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0711-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0712-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0718-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0719-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0721-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0722-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0724-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0725-removebg-preview"),
+        ]
+        let crashoutTextures = [
+            SKTexture(imageNamed: "IMG_0782-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0783-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0786-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0787-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0788-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0789-removebg-preview"),
+            SKTexture(imageNamed: "IMG_0790-removebg-preview"),
+        ]
+        let bombTextures = [
+            SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
+            SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
+            SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
+            SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
+            SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
+        ]
+        
         let runframes = [
             SKTexture(imageNamed: "IMG_0596-removebg-preview 1"),
             SKTexture(imageNamed: "IMG_0596-removebg-preview"),
@@ -314,65 +319,62 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         flyAction = SKAction.animate(with: flyTextures, timePerFrame: 0.1)
         crashoutAction = SKAction.animate(with: crashoutTextures, timePerFrame: 0.1)
         bombAction = SKAction.animate(with: bombTextures, timePerFrame: 0.1)
-
+        
         let repeatRun = SKAction.repeatForever(runAction)
         let repeatSwim = SKAction.repeatForever(swimAction)
         let repeatCrashout = SKAction.repeatForever(crashoutAction)
         let repeatBomb = SKAction.repeatForever(bombAction)
         let repeatCut = SKAction.repeatForever(cutAction)
         let repeatFly = SKAction.repeatForever(flyAction)
-
-            if model.detectedPose == "Swimming"{
-                character.run(repeatSwim)
-            }else if model.detectedPose == "Hands on Head Detected!"{
-                character.run(repeatCrashout)
-            }else if model.detectedPose == "Cutting detected!"{
-                character.run(repeatCut)
-            }else if model.detectedPose == "Flying detected!"{
-                character.run(repeatFly)
-            }else if model.detectedPose == "Clap"{
-                character.run(repeatBomb)
-            }else{
-                character.run(repeatRun)
-            }
-                        
-                //if statement goes here
+        
+        if model.detectedPose == "Swimming"{
+            character.run(repeatSwim)
+        }else if model.detectedPose == "Hands on Head Detected!"{
+            character.run(repeatCrashout)
+        }else if model.detectedPose == "Cutting detected!"{
+            character.run(repeatCut)
+        }else if model.detectedPose == "Flying detected!"{
+            character.run(repeatFly)
+        }else if model.detectedPose == "Clap"{
+            character.run(repeatBomb)
+        }else{
+            character.run(repeatRun)
+        }
+        
+        //if statement goes here
     }
-//    func startSwimmingAnimation(){
-//    let swimframes = [
-//        SKTexture(imageNamed: "james_swim"),
-//    ]
-//    let swimmingAction = SKAction.animate(with: swimframes, timePerFrame: 0.1)
-//    let repeatSwim = SKAction.repeatForever(swimmingAction)
-//    character.run(repeatSwim)
-//}
-//    func startCrashoutAnimation(){
-//    let swimframes = [
-//        SKTexture(imageNamed: "james_swim"),
-//    ]
-//    let swimmingAction = SKAction.animate(with: swimframes, timePerFrame: 0.1)
-//    let repeatSwim = SKAction.repeatForever(swimmingAction)
-//    character.run(repeatSwim)
-//}
-//    func startFlyingAnimation(){
-//    let flyframes = [
-//        SKTexture(imageNamed: "james_jump-removebg-preview"),
-//    ]
-//    let swimmingAction = SKAction.animate(with: flyframes, timePerFrame: 0.1)
-//    let repeatSwim = SKAction.repeatForever(swimmingAction)
-//    character.run(repeatSwim)
-//}
-//    func startBombingAnimation(){
-//    let swimframes = [
-//        SKTexture(imageNamed: "james_swim"),
-//    ]
-//    let swimmingAction = SKAction.animate(with: swimframes, timePerFrame: 0.1)
-//    let repeatSwim = SKAction.repeatForever(swimmingAction)
-//    character.run(repeatSwim)
-//}
-
-
-
+    //    func startSwimmingAnimation(){
+    //    let swimframes = [
+    //        SKTexture(imageNamed: "james_swim"),
+    //    ]
+    //    let swimmingAction = SKAction.animate(with: swimframes, timePerFrame: 0.1)
+    //    let repeatSwim = SKAction.repeatForever(swimmingAction)
+    //    character.run(repeatSwim)
+    //}
+    //    func startCrashoutAnimation(){
+    //    let swimframes = [
+    //        SKTexture(imageNamed: "james_swim"),
+    //    ]
+    //    let swimmingAction = SKAction.animate(with: swimframes, timePerFrame: 0.1)
+    //    let repeatSwim = SKAction.repeatForever(swimmingAction)
+    //    character.run(repeatSwim)
+    //}
+    //    func startFlyingAnimation(){
+    //    let flyframes = [
+    //        SKTexture(imageNamed: "james_jump-removebg-preview"),
+    //    ]
+    //    let swimmingAction = SKAction.animate(with: flyframes, timePerFrame: 0.1)
+    //    let repeatSwim = SKAction.repeatForever(swimmingAction)
+    //    character.run(repeatSwim)
+    //}
+    //    func startBombingAnimation(){
+    //    let swimframes = [
+    //        SKTexture(imageNamed: "james_swim"),
+    //    ]
+    //    let swimmingAction = SKAction.animate(with: swimframes, timePerFrame: 0.1)
+    //    let repeatSwim = SKAction.repeatForever(swimmingAction)
+    //    character.run(repeatSwim)
+    //}
     
     private func handlePose(_ pose: String?) {
         guard let pose = pose else { return }
@@ -451,14 +453,30 @@ struct ContentView: View {
     @State private var cameraViewModel = CameraViewModel()
     @State private var poseViewModel = PoseEstimationViewModel()
     @StateObject private var viewModel = GameViewModel()
+    @State private var startPage: Bool = true
     var scene: SKScene {
-        let scene = GameScene(size:CGSize(width: 400, height: 800),model: poseViewModel)
+        let scene = GameScene(size: CGSize(width: 400, height: 800),model: poseViewModel)
         scene.scaleMode = .resizeFill
         poseViewModel.gameScene = scene
         scene.viewModel = viewModel
         return scene
     }
     var body: some View {
+        //        if startPage {
+        //            ZStack {
+        //                CameraPreviewView(session: cameraViewModel.session)
+        //                    .edgesIgnoringSafeArea(.all)
+        //                PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
+        //            }
+        //            .overlay(
+        //                Button {
+        //                    startPage = false
+        //                }label: {
+        //                    Text("Start")
+        //                }
+        //                    .buttonStyle(.borderedProminent)
+        //            )
+        //        }else {
         if !viewModel.gameOver {
             SpriteView(scene: scene)
                 .ignoresSafeArea()
@@ -489,6 +507,7 @@ struct ContentView: View {
         }else {
             GameOverView(gameOver: $viewModel.gameOver)
         }
+        //        }
     }
 }
 
