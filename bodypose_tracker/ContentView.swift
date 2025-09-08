@@ -15,6 +15,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var waitInterval: TimeInterval = 3.5
     private var minInterval: TimeInterval = 0.5
     private var spawnAcceleration: TimeInterval = 0.05
+    var gameOver: Bool = false
     var currentPose: String? { didSet { handlePose(currentPose)}}
     var character: SKSpriteNode!
     let stickmanTexture = SKTexture(imageNamed: "stickmanObstacle")
@@ -39,9 +40,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func didBegin(_ contact: SKPhysicsContact) {
         let playerHitObstacle = (contact.bodyA.categoryBitMask == PhysicsCategory.character && contact.bodyB.categoryBitMask == PhysicsCategory.obstacle) || (contact.bodyA.categoryBitMask == PhysicsCategory.obstacle && contact.bodyB.categoryBitMask == PhysicsCategory.character)
         if playerHitObstacle {
-            print("Game Over")
-        }else {
-            print("aaa")
+            gameOver = true
         }
     }
     
@@ -275,40 +274,46 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 struct ContentView: View {
     @State private var cameraViewModel = CameraViewModel()
     @State private var poseViewModel = PoseEstimationViewModel()
+    @State private var gameOverContentView: Bool = false
     var scene: SKScene {
         let scene = GameScene()
         scene.size = CGSize(width: 400, height: 800)
         scene.scaleMode = .resizeFill
         poseViewModel.gameScene = scene
+        scene.gameOver = gameOverContentView
         return scene
     }
     var body: some View {
-        SpriteView(scene: scene)
-            .ignoresSafeArea()
-            .overlay(
-                VStack {
-                    HStack {
-                        VStack {
-                            ZStack {
-                                CameraPreviewView(session: cameraViewModel.session)
-                                //                    .edgesIgnoringSafeArea(.all)
-                                PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
-                            }
-                            .frame(width: 150, height: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .padding()
-                            Text(poseViewModel.detectedPose)
+        if !gameOverContentView{
+            SpriteView(scene: scene)
+                .ignoresSafeArea()
+                .overlay(
+                    VStack {
+                        HStack {
+                            VStack {
+                                ZStack {
+                                    CameraPreviewView(session: cameraViewModel.session)
+                                    //                    .edgesIgnoringSafeArea(.all)
+                                    PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
+                                }
+                                .frame(width: 150, height: 200)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                                 .padding()
+                                Text(poseViewModel.detectedPose)
+                                    .padding()
+                                Spacer()
+                            }
                             Spacer()
                         }
-                        Spacer()
                     }
+                )
+                .task {
+                    await cameraViewModel.checkpermission()
+                    cameraViewModel.delegate = poseViewModel
                 }
-            )
-            .task {
-                await cameraViewModel.checkpermission()
-                cameraViewModel.delegate = poseViewModel
-            }
+        }else {
+            GameOverView()
+        }
     }
 }
 
