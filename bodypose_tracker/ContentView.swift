@@ -37,7 +37,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
-        let playerHitObstacle = (contact.bodyA.categoryBitMask == PhysicsCategory.player && contact.bodyB.categoryBitMask == PhysicsCategory.obstacle) || (contact.bodyA.categoryBitMask == PhysicsCategory.obstacle && contact.bodyB.categoryBitMask == PhysicsCategory.player)
+        let playerHitObstacle = (contact.bodyA.categoryBitMask == PhysicsCategory.character && contact.bodyB.categoryBitMask == PhysicsCategory.obstacle) || (contact.bodyA.categoryBitMask == PhysicsCategory.obstacle && contact.bodyB.categoryBitMask == PhysicsCategory.character)
         if playerHitObstacle {
             print("Game Over")
         }else {
@@ -72,8 +72,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             rectangularStickman.physicsBody?.isDynamic = false
             
             rectangularStickman.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
-            rectangularStickman.physicsBody?.collisionBitMask = PhysicsCategory.player
-            rectangularStickman.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            rectangularStickman.physicsBody?.collisionBitMask = PhysicsCategory.character
+            rectangularStickman.physicsBody?.contactTestBitMask = PhysicsCategory.character
             
             obstacle = rectangularStickman
         case "Grass":
@@ -83,8 +83,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             texturedGrass.physicsBody?.isDynamic = false
             
             texturedGrass.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
-            texturedGrass.physicsBody?.collisionBitMask = PhysicsCategory.player
-            texturedGrass.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            texturedGrass.physicsBody?.collisionBitMask = PhysicsCategory.character
+            texturedGrass.physicsBody?.contactTestBitMask = PhysicsCategory.character
             
             obstacle = texturedGrass
         case "Block":
@@ -94,8 +94,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             texturedBlock.physicsBody?.isDynamic = false
             
             texturedBlock.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
-            texturedBlock.physicsBody?.collisionBitMask = PhysicsCategory.player
-            texturedBlock.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            texturedBlock.physicsBody?.collisionBitMask = PhysicsCategory.character
+            texturedBlock.physicsBody?.contactTestBitMask = PhysicsCategory.character
             
             obstacle = texturedBlock
         case "Hole":
@@ -105,8 +105,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             texturedHole.physicsBody?.isDynamic = false
             
             texturedHole.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
-            texturedHole.physicsBody?.collisionBitMask = PhysicsCategory.player
-            texturedHole.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            texturedHole.physicsBody?.collisionBitMask = PhysicsCategory.character
+            texturedHole.physicsBody?.contactTestBitMask = PhysicsCategory.character
             
             obstacle = texturedHole
         case "Water":
@@ -116,8 +116,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             texturedWater.physicsBody?.isDynamic = false
             
             texturedWater.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
-            texturedWater.physicsBody?.collisionBitMask = PhysicsCategory.player
-            texturedWater.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            texturedWater.physicsBody?.collisionBitMask = PhysicsCategory.character
+            texturedWater.physicsBody?.contactTestBitMask = PhysicsCategory.character
             
             obstacle = texturedWater
         case "Dragon":
@@ -127,8 +127,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             texturedDragon.physicsBody?.isDynamic = false
             
             texturedDragon.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
-            texturedDragon.physicsBody?.collisionBitMask = PhysicsCategory.player
-            texturedDragon.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            texturedDragon.physicsBody?.collisionBitMask = PhysicsCategory.character
+            texturedDragon.physicsBody?.contactTestBitMask = PhysicsCategory.character
             
             obstacle = texturedDragon
         default:
@@ -138,8 +138,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             rectangularStickman.physicsBody?.isDynamic = false
             
             rectangularStickman.physicsBody?.categoryBitMask = PhysicsCategory.obstacle
-            rectangularStickman.physicsBody?.collisionBitMask = PhysicsCategory.player
-            rectangularStickman.physicsBody?.contactTestBitMask = PhysicsCategory.player
+            rectangularStickman.physicsBody?.collisionBitMask = PhysicsCategory.character
+            rectangularStickman.physicsBody?.contactTestBitMask = PhysicsCategory.character
             
             obstacle = rectangularStickman
         }
@@ -155,9 +155,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let remove = SKAction.removeFromParent()
         obstacle!.run(SKAction.sequence([group, remove]))
     }
+    struct PhysicsCategory {
+        static let none: UInt32   = 0
+        static let character: UInt32 = 0x1 << 0
+        static let obstacle: UInt32  = 0x1 << 1
+    }
+
     func initiateCharacter(){
-        let firstFrame = SKTexture(imageNamed: "IMG_0596-removebg-preview 1")
+                let firstFrame = SKTexture(imageNamed: "IMG_0596-removebg-preview 1")
         character = SKSpriteNode(texture: firstFrame)
+        character.physicsBody = SKPhysicsBody(rectangleOf: character.size)
+        character.physicsBody?.categoryBitMask = PhysicsCategory.character
+        
+        //character.physicsBody?.contactTestBitMask = PhysicsCategory.
         character.position = CGPoint(x: size.width * 0.5, y: size.height * 0.3)
         character.zPosition = 10
         //        character.physicsBody = SKPhysicsBody(rectangleOf: character.size)
@@ -168,7 +178,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(character)
         startRunningAnimation()
     }
-    func startRunningAnimation(){
+        func startRunningAnimation(){
         let frames = [
             SKTexture(imageNamed: "IMG_0596-removebg-preview 1"),
             SKTexture(imageNamed: "IMG_0596-removebg-preview"),
@@ -304,13 +314,4 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-}
-
-
-
-
-struct PhysicsCategory {
-    static let none: UInt32 = 0
-    static let player: UInt32 = 0b1
-    static let obstacle: UInt32 = 0b10
 }
