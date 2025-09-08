@@ -462,52 +462,59 @@ struct ContentView: View {
         return scene
     }
     var body: some View {
-        //        if startPage {
-        //            ZStack {
-        //                CameraPreviewView(session: cameraViewModel.session)
-        //                    .edgesIgnoringSafeArea(.all)
-        //                PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
-        //            }
-        //            .overlay(
-        //                Button {
-        //                    startPage = false
-        //                }label: {
-        //                    Text("Start")
-        //                }
-        //                    .buttonStyle(.borderedProminent)
-        //            )
-        //        }else {
-        if !viewModel.gameOver {
-            SpriteView(scene: scene)
-                .ignoresSafeArea()
-                .overlay(
-                    VStack {
-                        HStack {
-                            VStack {
-                                ZStack {
-                                    CameraPreviewView(session: cameraViewModel.session)
-                                    //                    .edgesIgnoringSafeArea(.all)
-                                    PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
-                                }
-                                .frame(width: 150, height: 200)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                .padding()
-                                Text(poseViewModel.detectedPose)
+        if startPage {
+            VStack {
+                //                ZStack {
+                //                    CameraPreviewView(session: cameraViewModel.session)
+                //                        .edgesIgnoringSafeArea(.all)
+                //                    PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
+                //                }
+                Text("Welcome")
+                    .font(.largeTitle)
+                    .bold()
+                Button {
+                    startPage = false
+                }label: {
+                    Text("Start")
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .task {
+                await cameraViewModel.checkpermission()
+                cameraViewModel.delegate = poseViewModel
+            }
+        }else {
+            if !viewModel.gameOver {
+                SpriteView(scene: scene)
+                    .ignoresSafeArea()
+                    .overlay(
+                        VStack {
+                            HStack {
+                                VStack {
+                                    ZStack {
+                                        CameraPreviewView(session: cameraViewModel.session)
+                                        //                    .edgesIgnoringSafeArea(.all)
+                                        PoseOverlayView(bodyParts: poseViewModel.detectedBodyParts, connections: poseViewModel.bodyConnections)
+                                    }
+                                    .frame(width: 150, height: 200)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
                                     .padding()
+                                    Text(poseViewModel.detectedPose)
+                                        .padding()
+                                    Spacer()
+                                }
                                 Spacer()
                             }
-                            Spacer()
                         }
+                    )
+                    .task {
+                        await cameraViewModel.checkpermission()
+                        cameraViewModel.delegate = poseViewModel
                     }
-                )
-                .task {
-                    await cameraViewModel.checkpermission()
-                    cameraViewModel.delegate = poseViewModel
-                }
-        }else {
-            GameOverView(gameOver: $viewModel.gameOver)
+            }else {
+                GameOverView(gameOver: $viewModel.gameOver)
+            }
         }
-        //        }
     }
 }
 
