@@ -21,7 +21,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     
     var detectedBodyParts: [HumanBodyPoseObservation.JointName: CGPoint] = [:] // Dictionary that represents specific body joints
     var bodyConnections: [BodyConnection] = []
-    var detectedPose: String = ""
+    var detectedPose: String = "POSE!"
     var gameScene: GameScene?
     
     override init() {
@@ -73,7 +73,7 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
                     }else if self.detectClap(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
                         self.detectedPose = "Clap"
                         self.gameScene?.currentPose = "Clap"
-                    }
+                    }else { self.detectedPose = "POSE!"}
                 }
             }
         }
