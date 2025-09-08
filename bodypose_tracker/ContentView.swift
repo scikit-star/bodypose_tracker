@@ -479,10 +479,10 @@ struct ContentView: View {
                 }
                 .buttonStyle(.borderedProminent)
             }
-            .task {
-                await cameraViewModel.checkpermission()
-                cameraViewModel.delegate = poseViewModel
-            }
+            //            .task {
+            //                await cameraViewModel.checkpermission()
+            //                cameraViewModel.delegate = poseViewModel
+            //            }
         }else {
             if !viewModel.gameOver {
                 SpriteView(scene: scene)
