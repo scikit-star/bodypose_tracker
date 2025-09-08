@@ -316,11 +316,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         bombAction = SKAction.animate(with: bombTextures, timePerFrame: 0.1)
 
         let repeatRun = SKAction.repeatForever(runAction)
-        let repeatSwim = SKAction.repeatForever(runAction)
-        let repeatCrashout = SKAction.repeatForever(runAction)
-        let repeatBomb = SKAction.repeatForever(runAction)
-        let repeatCut = SKAction.repeatForever(runAction)
-        let repeatFly = SKAction.repeatForever(runAction)
+        let repeatSwim = SKAction.repeatForever(swimAction)
+        let repeatCrashout = SKAction.repeatForever(crashoutAction)
+        let repeatBomb = SKAction.repeatForever(bombAction)
+        let repeatCut = SKAction.repeatForever(cutAction)
+        let repeatFly = SKAction.repeatForever(flyAction)
 
             if model.detectedPose == "Swimming"{
                 character.run(repeatSwim)
@@ -338,38 +338,38 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                         
                 //if statement goes here
     }
-    func startSwimmingAnimation(){
-    let swimframes = [
-        SKTexture(imageNamed: "james_swim"),
-    ]
-    let swimmingAction = SKAction.animate(with: swimframes, timePerFrame: 0.1)
-    let repeatSwim = SKAction.repeatForever(swimmingAction)
-    character.run(repeatSwim)
-}
-    func startCrashoutAnimation(){
-    let swimframes = [
-        SKTexture(imageNamed: "james_swim"),
-    ]
-    let swimmingAction = SKAction.animate(with: swimframes, timePerFrame: 0.1)
-    let repeatSwim = SKAction.repeatForever(swimmingAction)
-    character.run(repeatSwim)
-}
-    func startFlyingAnimation(){
-    let flyframes = [
-        SKTexture(imageNamed: "james_jump-removebg-preview"),
-    ]
-    let swimmingAction = SKAction.animate(with: flyframes, timePerFrame: 0.1)
-    let repeatSwim = SKAction.repeatForever(swimmingAction)
-    character.run(repeatSwim)
-}
-    func startBombingAnimation(){
-    let swimframes = [
-        SKTexture(imageNamed: "james_swim"),
-    ]
-    let swimmingAction = SKAction.animate(with: swimframes, timePerFrame: 0.1)
-    let repeatSwim = SKAction.repeatForever(swimmingAction)
-    character.run(repeatSwim)
-}
+//    func startSwimmingAnimation(){
+//    let swimframes = [
+//        SKTexture(imageNamed: "james_swim"),
+//    ]
+//    let swimmingAction = SKAction.animate(with: swimframes, timePerFrame: 0.1)
+//    let repeatSwim = SKAction.repeatForever(swimmingAction)
+//    character.run(repeatSwim)
+//}
+//    func startCrashoutAnimation(){
+//    let swimframes = [
+//        SKTexture(imageNamed: "james_swim"),
+//    ]
+//    let swimmingAction = SKAction.animate(with: swimframes, timePerFrame: 0.1)
+//    let repeatSwim = SKAction.repeatForever(swimmingAction)
+//    character.run(repeatSwim)
+//}
+//    func startFlyingAnimation(){
+//    let flyframes = [
+//        SKTexture(imageNamed: "james_jump-removebg-preview"),
+//    ]
+//    let swimmingAction = SKAction.animate(with: flyframes, timePerFrame: 0.1)
+//    let repeatSwim = SKAction.repeatForever(swimmingAction)
+//    character.run(repeatSwim)
+//}
+//    func startBombingAnimation(){
+//    let swimframes = [
+//        SKTexture(imageNamed: "james_swim"),
+//    ]
+//    let swimmingAction = SKAction.animate(with: swimframes, timePerFrame: 0.1)
+//    let repeatSwim = SKAction.repeatForever(swimmingAction)
+//    character.run(repeatSwim)
+//}
 
 
 
