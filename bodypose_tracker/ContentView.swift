@@ -70,13 +70,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
+        var obstacleNode: SKNode?
         let playerHitObstacle = (contact.bodyA.categoryBitMask == PhysicsCategory.character && contact.bodyB.categoryBitMask == PhysicsCategory.obstacle) || (contact.bodyA.categoryBitMask == PhysicsCategory.obstacle && contact.bodyB.categoryBitMask == PhysicsCategory.character)
+        if contact.bodyA.categoryBitMask == PhysicsCategory.obstacle {
+            obstacleNode = contact.bodyA.node
+        }else if contact.bodyB.categoryBitMask == PhysicsCategory.obstacle {
+            obstacleNode = contact.bodyB.node
+        }
+        
         if playerHitObstacle {
+            let obstacle = obstacleNode
             print("Game Over")
             if (currentObstacle == "People" && model.detectedPose == "Hands on Head Detected!") || (currentObstacle == "Grass" && model.detectedPose == "Cutting detected!") || (currentObstacle == "Grass" && model.detectedPose == "Flying detected!") || (currentObstacle == "Block" && model.detectedPose == "Flying detected!") || (currentObstacle == "Hole" && model.detectedPose == "Flying detected!") || (currentObstacle == "Water" && model.detectedPose == "Swimming") || (currentObstacle == "Dragon" && model.detectedPose == "Clap"){
-                obstacle?.removeFromParent()
+                print("Correct pose!")
+                obstacle!.removeFromParent()
+            }else {
+                viewModel?.gameOver = true
             }
-            viewModel?.gameOver = true
         }
     }
     
@@ -454,12 +464,21 @@ struct ContentView: View {
     @State private var poseViewModel = PoseEstimationViewModel()
     @StateObject private var viewModel = GameViewModel()
     @State private var startPage: Bool = true
-    var scene: SKScene {
-        let scene = GameScene(size: CGSize(width: 400, height: 800),model: poseViewModel)
+    //    var scene: SKScene {
+    //        let scene = GameScene(size: CGSize(width: 400, height: 800),model: poseViewModel)
+    //        scene.scaleMode = .resizeFill
+    //        poseViewModel.gameScene = scene
+    //        scene.viewModel = viewModel
+    //        return scene
+    //    } -> Wrong cause its a computed property meaning it creates a new GameScene when swiftUI rerenders(@Observable in poseEstimationViewModel)
+    @State private var scene: GameScene // Store in State first so it doesn't rerender
+    
+    init() {
+        let poseViewModel = PoseEstimationViewModel()
+        let scene = GameScene(size: CGSize(width: 400, height: 800), model: poseViewModel)
         scene.scaleMode = .resizeFill
-        poseViewModel.gameScene = scene
-        scene.viewModel = viewModel
-        return scene
+        _scene = State(initialValue: scene) //_ before variable is basically initialising @State with a starting value
+        _poseViewModel = State(initialValue: poseViewModel)
     }
     var body: some View {
         if startPage {
@@ -510,6 +529,12 @@ struct ContentView: View {
                     .task {
                         await cameraViewModel.checkpermission()
                         cameraViewModel.delegate = poseViewModel
+                    }
+                    .onAppear {
+                        scene.removeAllActions()
+                        scene.removeAllChildren()
+                        scene.viewModel = viewModel
+                        poseViewModel.gameScene = scene
                     }
             }else {
                 GameOverView(gameOver: $viewModel.gameOver)
