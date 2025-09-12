@@ -73,7 +73,10 @@ class PoseEstimationViewModel: NSObject, AVCaptureVideoDataOutputSampleBufferDel
                     }else if self.detectClap(from: detectedPoints, frameWidth: frameWidth, frameHeight: frameHeight) {
                         self.detectedPose = "Clap"
                         self.gameScene?.currentPose = "Clap"
-                    }else { self.detectedPose = "POSE!"}
+                    }else {
+                        self.detectedPose = "POSE!"
+                        self.gameScene?.currentPose = "None"
+                    }
                 }
             }
         }
