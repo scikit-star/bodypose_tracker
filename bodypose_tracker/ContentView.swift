@@ -39,6 +39,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var bombAction: SKAction!
     var flyAction: SKAction!
     var crashoutAction: SKAction!
+    var repeatRun: SKAction!
+    var repeatSwim: SKAction!
+    var repeatCut: SKAction!
+    var repeatFly: SKAction!
+    var repeatCrashout: SKAction!
+    var repeatBomb: SKAction!
+    var storedPose = ""
     
     let stickmanTexture = SKTexture(imageNamed: "stickmanObstacle")
     let grassTexture = SKTexture(imageNamed: "grassObstacle")
@@ -304,8 +311,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
             SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
             SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
-            SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
-            SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
+//            SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
+//            SKTexture(imageNamed: "fiery-explosion-dramatic-visual-intense-combustion-debris_191095-81825"),
         ]
         
         let runframes = [
@@ -330,12 +337,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         crashoutAction = SKAction.animate(with: crashoutTextures, timePerFrame: 0.1)
         bombAction = SKAction.animate(with: bombTextures, timePerFrame: 0.1)
         
-        let repeatRun = SKAction.repeatForever(runAction)
-        let repeatSwim = SKAction.repeatForever(swimAction)
-        let repeatCrashout = SKAction.repeatForever(crashoutAction)
-        let repeatBomb = SKAction.repeatForever(bombAction)
-        let repeatCut = SKAction.repeatForever(cutAction)
-        let repeatFly = SKAction.repeatForever(flyAction)
+        repeatRun = SKAction.repeatForever(runAction)
+        repeatSwim = SKAction.repeatForever(swimAction)
+        repeatCrashout = SKAction.repeatForever(crashoutAction)
+        repeatBomb = SKAction.repeatForever(bombAction)
+        repeatCut = SKAction.repeatForever(cutAction)
+        repeatFly = SKAction.repeatForever(flyAction)
         
         if model.detectedPose == "Swimming"{
             character.run(repeatSwim)
@@ -388,26 +395,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private func handlePose(_ pose: String?) {
         guard let pose = pose else { return }
-        switch pose {
-            //        switch pose {
-            
-        case "HandsOnHead":
-            print("HandsOnHead")
-            
-        case "Clap":
-            print("Clap")
-            
-        case "Swimming":
-            print("Swimming")
-            
-        case "Flying":
-            print("Flying")
-            
-        case "Cutting":
-            print("Cutting")
-            
-        default:
-            print("No Pose Detected")
+        
+        if storedPose != pose {
+            character.removeAction(forKey: "animation")
+            switch pose {
+                //        switch pose {
+                
+            case "HandsOnHead":
+                print("HandsOnHead")
+                character.run(repeatCrashout, withKey: "animation")
+            case "Clap":
+                print("Clap")
+                character.run(repeatBomb, withKey: "animation")
+            case "Swimming":
+                print("Swimming")
+                character.run(repeatSwim, withKey: "animation")
+            case "Flying":
+                print("Flying")
+                character.run(repeatFly, withKey: "animation")
+            case "Cutting":
+                print("Cutting")
+                character.run(repeatCut, withKey: "animation")
+            default:
+                print("No Pose Detected")
+                character.run(repeatRun, withKey: "animation")
+            }
+            storedPose = pose
         }
     }
     
